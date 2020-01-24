@@ -154,6 +154,37 @@ function deleteUser(username, callback) {
   });
 }
 
+function updateUser(username, new_username, new_real_name, callback) {
+  fs.readFile(dataFile, (err, data) => {
+    if (err) {
+      console.log("updateUser: Error reading users file!")
+      console.log(err)
+      callback(err, false)
+    } else {
+      var content = data.toString()
+      var lines = removeBlank(content.split("\n"))
+      lines = lines.map((line) => {
+        if (line.split(":")[0] != username) {
+          return line
+        }
+        new_line = line.split(":")
+        new_line[0] = new_username
+        new_line[1] = new_real_name
+        return new_line.join(":")
+      })
+      fs.writeFile(dataFile, lines.join("\n"), (err) => {
+        if (err) {
+          console.log("updateUser: Error writing to users file!")
+          console.log(err)
+          callback(err, false)
+        } else {
+          callback(err, true)
+        }
+      })
+    }
+  });
+}
+
 
 routes.get('/users', (req, res) => {
   getData(function(err, data) {
@@ -247,6 +278,28 @@ routes.get('/delete_user', (req, res) => {
       }
     }
   })
+});
+
+routes.get('/update_user', (req, res) => {
+  error = validateUsername(req.query.new_username)
+  if (!error) {
+    error = validateRealName(req.query.new_real_name)
+  }
+  if (error) {
+    res.status(400).json({success: false, error: error})
+  } else {
+    updateUser(req.query.username, req.query.new_username, req.query.new_real_name, (err, data) => {
+      if (err) {
+        res.status(500).json({success: false, error: err})
+      } else {
+        if (data) {
+          res.status(200).json({success: true})
+        } else {
+          res.status(500).json({success: false, error: err})
+        }
+      }
+    })
+  }
 });
 
 
