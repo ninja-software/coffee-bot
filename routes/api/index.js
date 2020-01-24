@@ -2,11 +2,10 @@ const routes = require('express').Router();
 const config = require("../../config")
 var fs = require('fs');
 
-//TODO: Switch some methods to POST instead of GET, I used GET for testing as it's easier to send GET requests from a browser
 //TODO: Create a better logging function that outputs errors to stdout and appends them to file for easier debugging
 //TODO: Fix inconsistent casing, eg. validateRealName(real_name)
 //TODO: Make the drinkCoffee method return the number of coffees that user has drank that day
-//TODO: Consider using  sqlite or some ORM instead of a delimited text file, this may not be necessary but for large amounts of data this implementation might become too slow
+//TODO: Consider using sqlite or some ORM instead of a delimited text file, this may not be necessary but for large amounts of data this implementation might become too slow
 
 //To parse POST url-encoded bodies
 var bodyParser = require('body-parser')
@@ -231,7 +230,7 @@ routes.get('/get_user', (req, res) => {
   })
 });
 
-routes.get('/new_user', (req, res) => {
+routes.post('/new_user', (req, res) => {
   error = validateUsername(req.query.username)
   if (!error) {
     error = validateRealName(req.query.real_name)
@@ -259,7 +258,7 @@ routes.get('/new_user', (req, res) => {
   }
 })
 
-routes.get('/drink_coffee', (req, res) => {
+routes.post('/drink_coffee', (req, res) => {
   drinkCoffee(req.query.username, (err, data) => {
     if (err) {
       res.status(500).json({success: false, error: err})
@@ -273,7 +272,7 @@ routes.get('/drink_coffee', (req, res) => {
   })
 });
 
-routes.get('/delete_user', (req, res) => {
+routes.post('/delete_user', (req, res) => {
   deleteUser(req.query.username, (err, data) => {
     if (err) {
       res.status(500).json({success: false, error: err})
@@ -287,7 +286,7 @@ routes.get('/delete_user', (req, res) => {
   })
 });
 
-routes.get('/update_user', (req, res) => {
+routes.post('/update_user', (req, res) => {
   if (req.query.new_username) {
     error = validateUsername(req.query.new_username)
   }
