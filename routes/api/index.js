@@ -5,6 +5,8 @@ var fs = require('fs');
 //TODO: Switch some methods to POST instead of GET, I used GET for testing as it's easier to send GET requests from a browser
 //TODO: Create a better logging function that outputs errors to stdout and appends them to file for easier debugging
 //TODO: Fix inconsistent casing, eg. validateRealName(real_name)
+//TODO: Make the drinkCoffee method return the number of coffees that user has drank that day
+//TODO: Consider using  sqlite or some ORM instead of a delimited text file, this may not be necessary but for large amounts of data this implementation might become too slow
 
 //To parse POST url-encoded bodies
 var bodyParser = require('body-parser')
@@ -30,7 +32,7 @@ function validateRealName(real_name) {
   if (!real_name) {
     return "Please provide a name!"
   } else if (!real_name_regex.test(real_name)) {
-    return "Invalud name! Only a-z, spaces and dashes are allowed, 2-20 characters."
+    return "Invalid name! Only a-z, spaces and dashes are allowed, 2-20 characters."
   }
   return ""
 }
@@ -87,6 +89,44 @@ function getUser(username, real_name, callback) {
       }
     }
   }, true)
+}
+
+function drinkCoffee(username, callback) {
+  fs.readFile(dataFile, (err, data) => {
+    if (err) {
+      console.log("drinkCoffee: Error reading users file!")
+      console.log(err)
+      callback(err, false)
+    } else {
+      var content = data.toString()
+      var lines = removeBlank(content.split("\n"))
+      var wrote = false
+      for (var line_number in lines) {
+        line = lines[line_number]
+        if (line.split(":")[0] == username) {
+          if (line.charAt(line.length - 1) != ":") {
+            lines[line_number] += ","
+          }
+          //Append the current unix timestamp
+          lines[line_number] += +new Date()
+          wrote = true
+        }
+      }
+      if (wrote) {
+        fs.writeFile(dataFile, lines.join("\n"), (err) => {
+          if (err) {
+            console.log("drinkCoffee: Error writing to users file!")
+            console.log(err)
+            callback(err, false)
+          } else {
+            callback(err, true)
+          }
+        })
+      } else {
+        callback(err, false)
+      }
+    }
+  });
 }
 
 routes.get('/users', (req, res) => {
@@ -154,6 +194,20 @@ routes.get('/new_user', (req, res) => {
     })
   }
 })
+
+routes.get('/drink_coffee', (req, res) => {
+  drinkCoffee(req.query.username, (err, data) => {
+    if (err) {
+      res.status(500).json({success: false, error: err})
+    } else {
+      if (data) {
+        res.status(200).json({success: true})
+      } else {
+        res.status(400).json({success: false, error: "User not found!"})
+      }
+    }
+  })
+});
 
 
 module.exports = routes;
