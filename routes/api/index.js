@@ -168,8 +168,12 @@ function updateUser(username, new_username, new_real_name, callback) {
           return line
         }
         new_line = line.split(":")
-        new_line[0] = new_username
-        new_line[1] = new_real_name
+        if (new_username) {
+          new_line[0] = new_username
+        }
+        if (new_real_name) {
+          new_line[1] = new_real_name
+        }
         return new_line.join(":")
       })
       fs.writeFile(dataFile, lines.join("\n"), (err) => {
@@ -185,6 +189,9 @@ function updateUser(username, new_username, new_real_name, callback) {
   });
 }
 
+routes.get('/', (req, res) => {
+  res.render("api")
+})
 
 routes.get('/users', (req, res) => {
   getData(function(err, data) {
@@ -281,8 +288,10 @@ routes.get('/delete_user', (req, res) => {
 });
 
 routes.get('/update_user', (req, res) => {
-  error = validateUsername(req.query.new_username)
-  if (!error) {
+  if (req.query.new_username) {
+    error = validateUsername(req.query.new_username)
+  }
+  if (!error && req.query.new_real_name) {
     error = validateRealName(req.query.new_real_name)
   }
   if (error) {
