@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Coffee Tracker Bot - API documentation</title>
+</head>
+
+<body>
+
+<b>GET /api/users</b>
+<p>Returns a list of current users and their real name. Example:</p>
+<code>Request: GET /api/users<br>
+Response: {success: true, users: [{username: "bOb_123", real_name: "Bob"}]}</code>
+
+<br>
+<br>
+<br>
+
+<b>GET /api/data</b>
+<p>Returns a list of current users, their real name, and every time they've ever gotten coffee. Example:</p>
+<code>Request: GET /api/data<br>
+Response: {success: true, users: [{username: "bOb_123", real_name: "Bob", data: ["1547660405000"]}]}</code>
+
+<br>
+<br>
+<br>
+
+
+<b>GET /api/get_user</b>
+<p>Query format: <code>username=[username]&real_name=[real_name]</code></p>
+<p>Return the username, real_name, and list of times the user has gotten coffee. Can get user by using their real name or username. Example:</p>
+<code>Request: GET /api/get_user<br>
+Query: username=bOb_123<br>
+Response: {success: true, user: {username: "bOb_123", real_name: "Bob", data: ["1547660405000"]}}</code>
+
+<br>
+<br>
+<br>
+
+<b>POST /api/new_user</b>
+<p>Body format: <code>username=&lt;username&gt;&real_name=&lt;real_name&gt;</code></p>
+<p>Creates a new user. Example:</p>
+<code>Request: POST /api/new_user<br>
+Body: username=alice97&real_name=Alice<br>
+Response: {success: true}</code>
+
+<br>
+<br>
+<br>
+
+<b>POST /api/drink_coffee</b>
+<p>Body format: <code>username=&lt;username&gt;</code></p>
+<p>Adds to the list of times a user has drunk coffee. Example:</p>
+<code>Request: POST /api/drink_coffee<br>
+Body: username=bOb_123<br>
+Response: {success: true}</code>
+
+<br>
+<br>
+<br>
+
+<b>POST /api/delete_user</b>
+<p>Body format: <code>username=&lt;username&gt;</code></p>
+<p>Deletes an existing user and all of their data, this is irreversible. Example:</p>
+<code>Request: POST /api_delete_user<br>
+Body: username=bOb_123<br>
+Response: {success: true}</code>
+
+<br>
+<br>
+<br>
+
+<b>POST /api/update_user</b>
+<p>Body format: <code>username=&lt;username&gt;&new_username=[new_username]&new_real_name=[new_real_name]</code></p>
+<p>Updates a users username or real name. Example:</p>
+<code>Request: POST /api/update_user<br>
+Body: username=bOb_123&new_username=just_bob<br>
+Response: {success: true}</code>
+
+</body>
+
+</html>
