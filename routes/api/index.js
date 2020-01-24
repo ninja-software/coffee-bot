@@ -6,6 +6,8 @@ var fs = require('fs');
 //TODO: Fix inconsistent casing, eg. validateRealName(real_name)
 //TODO: Make the drinkCoffee method return the number of coffees that user has drank that day
 //TODO: Consider using sqlite or some ORM instead of a delimited text file, this may not be necessary but for large amounts of data this implementation might become too slow
+//TODO: Move code from new_user API into a newUser function
+//TODO: Comment res.json calls
 
 //To parse POST url-encoded bodies
 var bodyParser = require('body-parser')
@@ -231,19 +233,19 @@ routes.get('/get_user', (req, res) => {
 });
 
 routes.post('/new_user', (req, res) => {
-  error = validateUsername(req.query.username)
+  error = validateUsername(req.body.username)
   if (!error) {
-    error = validateRealName(req.query.real_name)
+    error = validateRealName(req.body.real_name)
   }
   if (error) {
     res.status(400).json({success: false, error: error})
   } else {
-    getUser(req.query.username, null, function(err, data) {
+    getUser(req.body.username, null, function(err, data) {
       if (data.length != 0) {
         res.status(400).json({success: false, error: "Username is taken!"})
       } else {
         //Construct base line for new user
-        line = req.query.username + ":" + req.query.real_name + ":\n"
+        line = req.body.username + ":" + req.body.real_name + ":\n"
         fs.appendFile(dataFile, line, function (err) {
           if (err) {
             console.log("/api/new_user: Error appending to users file!")
@@ -259,7 +261,7 @@ routes.post('/new_user', (req, res) => {
 })
 
 routes.post('/drink_coffee', (req, res) => {
-  drinkCoffee(req.query.username, (err, data) => {
+  drinkCoffee(req.body.username, (err, data) => {
     if (err) {
       res.status(500).json({success: false, error: err})
     } else {
@@ -273,7 +275,7 @@ routes.post('/drink_coffee', (req, res) => {
 });
 
 routes.post('/delete_user', (req, res) => {
-  deleteUser(req.query.username, (err, data) => {
+  deleteUser(req.body.username, (err, data) => {
     if (err) {
       res.status(500).json({success: false, error: err})
     } else {
@@ -287,16 +289,16 @@ routes.post('/delete_user', (req, res) => {
 });
 
 routes.post('/update_user', (req, res) => {
-  if (req.query.new_username) {
-    error = validateUsername(req.query.new_username)
+  if (req.body.new_username) {
+    error = validateUsername(req.body.new_username)
   }
-  if (!error && req.query.new_real_name) {
-    error = validateRealName(req.query.new_real_name)
+  if (!error && req.body.new_real_name) {
+    error = validateRealName(req.body.new_real_name)
   }
   if (error) {
     res.status(400).json({success: false, error: error})
   } else {
-    updateUser(req.query.username, req.query.new_username, req.query.new_real_name, (err, data) => {
+    updateUser(req.body.username, req.body.new_username, req.body.new_real_name, (err, data) => {
       if (err) {
         res.status(500).json({success: false, error: err})
       } else {
@@ -309,6 +311,5 @@ routes.post('/update_user', (req, res) => {
     })
   }
 });
-
 
 module.exports = routes;
