@@ -129,6 +129,32 @@ function drinkCoffee(username, callback) {
   });
 }
 
+function deleteUser(username, callback) {
+  fs.readFile(dataFile, (err, data) => {
+    if (err) {
+      console.log("deleteUser: Error reading users file!")
+      console.log(err)
+      callback(err, false)
+    } else {
+      var content = data.toString()
+      var lines = removeBlank(content.split("\n"))
+      lines = lines.filter((line) => {
+        return line.split(":")[0] != username
+      })
+      fs.writeFile(dataFile, lines.join("\n"), (err) => {
+        if (err) {
+          console.log("deleteUser: Error writing to users file!")
+          console.log(err)
+          callback(err, false)
+        } else {
+          callback(err, true)
+        }
+      })
+    }
+  });
+}
+
+
 routes.get('/users', (req, res) => {
   getData(function(err, data) {
     if (err) {
@@ -204,6 +230,20 @@ routes.get('/drink_coffee', (req, res) => {
         res.status(200).json({success: true})
       } else {
         res.status(400).json({success: false, error: "User not found!"})
+      }
+    }
+  })
+});
+
+routes.get('/delete_user', (req, res) => {
+  deleteUser(req.query.username, (err, data) => {
+    if (err) {
+      res.status(500).json({success: false, error: err})
+    } else {
+      if (data) {
+        res.status(200).json({success: true})
+      } else {
+        res.status(500).json({success: false, error: err})
       }
     }
   })
