@@ -5,9 +5,49 @@
 </head>
 
 <body>
+
+<nav>
+<h1>Coffee Tracker</h1>
+</nav>
+
+<div id="coffee_addicts"></div>
+
 </body>
 
 <script>
+
+var num = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" ");
+var tens = "twenty thirty forty fifty sixty seventy eighty ninety".split(" ");
+
+function number_to_words(n){
+    if (n < 20) return num[n];
+    var digit = n%10;
+    if (n < 100) return tens[~~(n/10)-2] + (digit? "-" + num[digit]: "");
+    if (n < 1000) return num[~~(n/100)] +" hundred" + (n%100 == 0? "": " " + number2words(n%100));
+    return number_to_words(~~(n/1000)) + " thousand" + (n%1000 != 0? " " + number2words(n%1000): "");
+}
+
+function track_coffee() {
+  POST("/api/drink_coffee", `username=${this.username}`, (data) => {
+    if (data.success) {
+      coffees = number_to_words(data.coffees_drunk_today) + " coffee"
+      if (data.coffees_drunk_today > 1) coffees += "s"
+      message = data.coffees_drunk_today ? `You have drunk ${coffees} today!` : "This is your first coffee today!"
+      Swal.fire({
+        imageUrl: 'https://i.imgur.com/T2pMn7L.gif',
+        imageAlt: 'A sizzling coffee',
+        title: this.innerText,
+        text: message
+      })
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: JSON.stringify(error),
+      })
+    }
+  })
+}
 
 function GET(url, callback) {
   fetch(url)
@@ -21,7 +61,7 @@ function POST(url, data, callback) {
 
   fetch(url, {
     method: "POST",
-    body: data,
+    body: encodeURI(data),
     headers: {
       "Content-Type": "application/x-www-form-urlencoded"
     }
@@ -31,6 +71,142 @@ function POST(url, data, callback) {
 
 }
 
+GET("/api/users", (data) => {
+  coffee_addicts = document.querySelector("#coffee_addicts")
+  data.users.map((user) => {
+    button = document.createElement("button")
+    button.innerText = user.real_name
+    button.username = user.username
+    button.onclick = track_coffee
+    coffee_addicts.appendChild(button)
+  })
+})
+
 </script>
+
+<style>
+
+nav {
+  position: fixed;
+  top: 0;
+  height: 15%;
+  width: 100%;
+  background: linear-gradient(123deg, rgba(25,25,25,1) 0%, rgba(39,39,39,1) 100%); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
+#coffee_addicts {
+  position: absolute;
+  top: 20%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-column-gap: 1%;
+  grid-row-gap: 1.5%;
+}
+
+//Font CSS, downloaded from https://fonts.googleapis.com/css?family=K2D so we don't have to depend on Google
+/* thai */
+@font-face {
+  font-family: 'K2D';
+  font-style: normal;
+  font-weight: 400;
+  src: local('K2D Regular'), local('K2D-Regular'), url(https://fonts.gstatic.com/s/k2d/v3/J7aTnpF2V0EjZKUsrLc.woff2) format('woff2');
+  unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'K2D';
+  font-style: normal;
+  font-weight: 400;
+  src: local('K2D Regular'), local('K2D-Regular'), url(https://fonts.gstatic.com/s/k2d/v3/J7aTnpF2V0Ejf6UsrLc.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'K2D';
+  font-style: normal;
+  font-weight: 400;
+  src: local('K2D Regular'), local('K2D-Regular'), url(https://fonts.gstatic.com/s/k2d/v3/J7aTnpF2V0EjfqUsrLc.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'K2D';
+  font-style: normal;
+  font-weight: 400;
+  src: local('K2D Regular'), local('K2D-Regular'), url(https://fonts.gstatic.com/s/k2d/v3/J7aTnpF2V0EjcKUs.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  min-height: 100vh;
+  background: #333333;
+  font-family: 'K2D', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+body {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.container::-webkit-scrollbar { 
+    display: none;  /* Safari and Chrome */
+}
+
+h1, h2 {
+  color: #fafafa;
+}
+
+button {
+  display: block;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: 0;
+  background-color: #292929;
+  border: 0;
+  height: 18vh;
+  color: #eeeeee;
+  border-radius: 3px;
+  width: 30vw;
+  cursor: pointer;
+  font-size: 4.5vw;
+  transition-duration: 0.25s;
+  text-align: center;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+button:focus {
+  outline: none;
+  outline-style:none;
+  box-shadow:none;
+  border-color:transparent;
+}
+
+button:hover {
+  background-color: #242424;
+}
+
+.swal2-confirm {
+  height: 80px !important;
+  width: 80% !important;
+}
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
 
 </html>
