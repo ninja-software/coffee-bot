@@ -49,10 +49,10 @@ Response: {success: true}</code>
 
 <b>POST /api/drink_coffee</b>
 <p>Body format: <code>username=&lt;username&gt;</code></p>
-<p>Adds to the list of times a user has drunk coffee. Example:</p>
+<p>Adds to the list of times a user has drunk coffee and returns how many coffees they have drunk that day (not including the new one). Example:</p>
 <code>Request: POST /api/drink_coffee<br>
 Body: username=bOb_123<br>
-Response: {success: true}</code>
+Response: {success: true, coffees_drunk_today: 2}</code>
 
 <br>
 <br>
