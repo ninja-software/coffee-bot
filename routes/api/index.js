@@ -18,6 +18,12 @@ routes.use(bodyParser.urlencoded({
 dataPath = process.cwd() + "/" + config.data_location + "/"
 dataFile = dataPath + "users"
 
+function is_today(timestamp) {
+  var today = new Date()
+  if (today.setHours(0,0,0,0) == new Date(parseInt(timestamp)).setHours(0,0,0,0)) return true
+  return false
+}
+
 function validateUsername(username) {
   username_regex = config.validation.username_regex
   if (!username) {
@@ -102,6 +108,7 @@ function drinkCoffee(username, callback) {
       var content = data.toString()
       var lines = removeBlank(content.split("\n"))
       var wrote = false
+      var coffee_timestamps
       for (var line_number in lines) {
         line = lines[line_number]
         if (line.split(":")[0] == username) {
@@ -109,6 +116,8 @@ function drinkCoffee(username, callback) {
             lines[line_number] += ","
           }
           //Append the current unix timestamp
+          coffee_timestamps = lines[line_number].split(":")[2].split(",")
+          coffee_timestamps = coffee_timestamps.filter(is_today)
           lines[line_number] += +new Date()
           wrote = true
         }
@@ -118,13 +127,13 @@ function drinkCoffee(username, callback) {
           if (err) {
             console.log("drinkCoffee: Error writing to users file!")
             console.log(err)
-            callback(err, false)
+            callback(err, -1)
           } else {
-            callback(err, true)
+            callback(err, coffee_timestamps.length)
           }
         })
       } else {
-        callback(err, false)
+        callback(err, -1)
       }
     }
   });
@@ -265,8 +274,8 @@ routes.post('/drink_coffee', (req, res) => {
     if (err) {
       res.status(500).json({success: false, error: err})
     } else {
-      if (data) {
-        res.status(200).json({success: true})
+      if (data >= 0) {
+        res.status(200).json({success: true, coffees_drunk_today: data})
       } else {
         res.status(400).json({success: false, error: "User not found!"})
       }
