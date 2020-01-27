@@ -16,28 +16,14 @@
 
 <script>
 
-var num = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" ");
-var tens = "twenty thirty forty fifty sixty seventy eighty ninety".split(" ");
-
-function number_to_words(n){
-    if (n < 20) return num[n];
-    var digit = n%10;
-    if (n < 100) return tens[~~(n/10)-2] + (digit? "-" + num[digit]: "");
-    if (n < 1000) return num[~~(n/100)] +" hundred" + (n%100 == 0? "": " " + number2words(n%100));
-    return number_to_words(~~(n/1000)) + " thousand" + (n%1000 != 0? " " + number2words(n%1000): "");
-}
-
 function track_coffee() {
   POST("/api/drink_coffee", `username=${this.username}`, (data) => {
     if (data.success) {
-      coffees = number_to_words(data.coffees_drunk_today) + " coffee"
-      if (data.coffees_drunk_today > 1) coffees += "s"
-      message = data.coffees_drunk_today ? `You have drunk ${coffees} today!` : "This is your first coffee today!"
       Swal.fire({
         imageUrl: 'https://i.imgur.com/T2pMn7L.gif',
         imageAlt: 'A sizzling coffee',
         title: this.innerText,
-        text: message
+        text: data.data.message
       })
     } else {
       Swal.fire({
@@ -107,7 +93,6 @@ nav {
   grid-row-gap: 1.5%;
 }
 
-//Font CSS, downloaded from https://fonts.googleapis.com/css?family=K2D so we don't have to depend on Google
 /* thai */
 @font-face {
   font-family: 'K2D';
