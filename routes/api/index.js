@@ -16,12 +16,91 @@ function number_to_words(n) {
     return number_to_words(~~(n/1000)) + " thousand" + (n%1000 != 0? " " + number_to_words(n%1000): "");
 }
 
+function parseDate(input) {
+  // Transform date from text to date
+  var parts = input.match(/(\d+)/g);
+  // new Date(year, month [, date [, hours[, minutes[, seconds[, ms]]]]])
+  return new Date(parts[0], parts[1]-1, parts[2]); // months are 0-based
+}
+
+function get_working_days(startDate, endDate) {
+  // populate the holidays array with all required dates without first taking care of what day of the week they happen
+  var holidays = ['2018-12-09', '2018-12-10', '2018-12-24', '2018-12-31'];
+  // Validate input
+  if (endDate < startDate)
+      return 0;
+
+  var z = 0; // number of days to substract at the very end
+  for (i = 0; i < holidays.length; i++)
+  {
+      var cand = parseDate(holidays[i]);
+      var candDay = cand.getDay();
+
+    if (cand >= startDate && cand <= endDate && candDay != 0 && candDay != 6)
+    {
+      // we'll only substract the date if it is between the start or end dates AND it isn't already a saturday or sunday
+      z++;
+    }
+
+  }
+  // Calculate days between dates
+  var millisecondsPerDay = 86400 * 1000; // Day in milliseconds
+  startDate.setHours(0,0,0,1);  // Start just after midnight
+  endDate.setHours(23,59,59,999);  // End just before midnight
+  var diff = endDate - startDate;  // Milliseconds between datetime objects    
+  var days = Math.ceil(diff / millisecondsPerDay);
+
+  // Subtract two weekend days for every week in between
+  var weeks = Math.floor(days / 7);
+  days = days - (weeks * 2);
+
+  // Handle special cases
+  var startDay = startDate.getDay();
+  var endDay = endDate.getDay();
+
+  // Remove weekend not previously removed.   
+  if (startDay - endDay > 1)         
+      days = days - 2;      
+
+  // Remove start day if span starts on Sunday but ends before Saturday
+  if (startDay == 0 && endDay != 6)
+      days = days - 1  
+
+  // Remove end day if span ends on Saturday but starts after Sunday
+  if (endDay == 6 && startDay != 0)
+      days = days - 1  
+
+  // substract the holiday dates from the original calculation and return to the DOM
+  return days - z;
+}
+
+var periods = {
+  month: 30 * 24 * 60 * 60 * 1000,
+  week: 7 * 24 * 60 * 60 * 1000,
+  day: 24 * 60 * 60 * 1000,
+  hour: 60 * 60 * 1000,
+  minute: 60 * 1000
+};
+
+function time_ago(diff) {
+  if (diff > periods.month) {
+    return Math.floor(diff / periods.month) + "m";
+  } else if (diff > periods.week) {
+    return Math.floor(diff / periods.week) + "w";
+  } else if (diff > periods.day) {
+    return Math.floor(diff / periods.day) + "d";
+  } else if (diff > periods.hour) {
+    return Math.floor(diff / periods.hour) + "h";
+  } else if (diff > periods.minute) {
+    return Math.floor(diff / periods.minute) + "m";
+  }
+  return Math.floor(diff / 1000) + "s";
+}
+
 /*
-/stats - list all members coffee consumption
 /today - list todays consumption, break down into individual members
 /me - get own stat
 */
-
 
 bot.on('message', (msg) => {
   switch (msg.text) {
@@ -61,6 +140,39 @@ bot.on('message', (msg) => {
           bot.sendMessage(msg.chat.id, response)
         }
       }, false)
+      break
+      case "/today":
+        getData((err, data) => {
+          if (err) {
+            error = JSON.stringify(err)
+            bot.sendMessage(msg.chat.id, `An error occurred! The details are as follows: ${error}`)
+          } else {
+            data.sort((a, b) => (a.cups_consumed_today < b.cups_consumed_today) ? 1 : -1)
+            had_coffee_today = data.filter(e => e.cups_consumed_today > 0)
+            getStats((err, data) => {
+              if (err) {
+                error = JSON.stringify(err)
+                bot.sendMessage(msg.chat.id, `An error occurred! The details are as follows: ${error}`)
+              } else {
+                today_message = data.coffees_consumed_today + " cup"
+                if (data.coffees_consumed_today == 0 || data.coffees_consumed_today > 1) today_message += "s"
+                message = `${today_message} of coffee have been consumed today.`
+                if (data.coffees_consumed_today > 0) {
+                  time_ago_message = time_ago(data.last_consumed)
+                  console.log(data.last_consumed)
+                  message += ` The last coffee was consumed ${time_ago_message} ago.`
+                }
+                message += "\n"
+                message += had_coffee_today.map((user) => {
+                  cups_message = user.cups_consumed_today + " cup"
+                  if (user.cups_consumed_today == 0 || user.cups_consumed_today > 1) cups_message += "s"
+                  return `${user.real_name} has consumed ${cups_message} today.`
+                }).join("\n")
+                bot.sendMessage(msg.chat.id, message)
+              }
+            })
+          }
+        }, false)
   }
 });
 
@@ -134,15 +246,42 @@ function getData(callback, include_data = true) {
         } else {
           user_data.total_cups_consumed = all_times.length
           user_data.cups_consumed_today = all_times.filter(is_today).length
-          user_data.days_since_first_coffee = Math.floor(new Date(new Date() - new Date(parseInt(all_times[0]))) / (1000 * 3600 * 24))
-          user_data.average_daily_cups = user_data.total_cups_consumed / user_data.days_since_first_coffee
+          first_coffee = new Date(parseInt(all_times[0]))
+          user_data.days_since_first_coffee = Math.floor(new Date(new Date() - first_coffee) / (1000 * 3600 * 24))
+          user_data.average_daily_cups = user_data.total_cups_consumed / get_working_days(first_coffee, new Date())
         }
         return user_data
       })
       callback(err, json_data)
     }
   });
+}
 
+function getStats(callback) {
+  fs.readFile(dataFile, function(err, data) {
+    if (err) {
+      callback(err,data)
+    } else {
+      var users = data.toString()
+      //Get users array from list of lines
+      users = users.split("\n")
+      //Remove empty lines as they can mess with the parsing
+      users = removeBlank(users)
+      var all_times = []
+      for (var user of users) {
+        all_times = all_times.concat(user.split(":")[2].split(","))
+      }
+      all_times = all_times.map(e => parseInt(e))
+      all_times.sort()
+      var json_data = {}
+      json_data.total_coffees = all_times.length
+      first_coffee = new Date(all_times[0])
+      json_data.daily_average = json_data.total_coffees / get_working_days(first_coffee, new Date())
+      json_data.coffees_consumed_today = all_times.filter(is_today).length
+      json_data.last_consumed = new Date() - new Date(all_times[all_times.length - 1])
+      callback(err, json_data)
+    }
+  });
 }
 
 function getUser(username, real_name, callback) {
@@ -297,6 +436,16 @@ routes.get('/data', (req, res) => {
       res.status(200).json({success: true, users: data})
     }
   }, true)
+});
+
+routes.get('/stats', (req, res) => {
+  getStats(function(err, data) {
+    if (err) {
+      res.status(500).json({success: false, err: error})
+    } else {
+      res.status(200).json({success: true, stats: data})
+    }
+  })
 });
 
 routes.get('/get_user', (req, res) => {
