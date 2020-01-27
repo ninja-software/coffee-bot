@@ -7,9 +7,9 @@
 <body>
 
 <b>GET /api/users</b>
-<p>Returns a list of current users and their real name. Example:</p>
+<p>Returns a list of current users, their real name, and some useful statistics about each user. Example:</p>
 <code>Request: GET /api/users<br>
-Response: {success: true, users: [{username: "bOb_123", real_name: "Bob"}]}</code>
+Response: {success: true, users: [{username: "bOb_123", real_name: "Bob", total_cups_consumed: 372, cups_consumed_today: 2, days_since_first_coffee: 438, average_daily_cups: 0.8493150684931506}]}</code>
 
 <br>
 <br>
@@ -24,6 +24,14 @@ Response: {success: true, users: [{username: "bOb_123", real_name: "Bob", data: 
 <br>
 <br>
 
+<b>GET /api/stats</b>
+<p>Returns some useful statistics. Example:</p>
+<code>Request: GET /api/data<br>
+Response: {success: true, stats: {total_coffees: 193, daily_average: 4.2, coffees_consumed_today: 3, last_consumed: 827294}</code>
+
+<br>
+<br>
+<br>
 
 <b>GET /api/get_user</b>
 <p>Query format: <code>username=[username]&real_name=[real_name]</code></p>
