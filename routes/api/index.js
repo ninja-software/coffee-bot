@@ -5,13 +5,6 @@ var fs = require('fs');
 const telegram_bot = require('node-telegram-bot-api');
 const bot = new telegram_bot(config.secrets.telegram_api_key, {polling: true});
 
-/*
-/drink - increment coffee count for command issuer
-/stats - list all members coffee consumption
-/today - list todays consumption, break down into individual members
-/me - get own stat
-*/
-
 var num = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" ");
 var tens = "twenty thirty forty fifty sixty seventy eighty ninety".split(" ");
 
@@ -22,6 +15,12 @@ function number_to_words(n) {
     if (n < 1000) return num[~~(n/100)] +" hundred" + (n%100 == 0? "": " " + number_to_words(n%100));
     return number_to_words(~~(n/1000)) + " thousand" + (n%1000 != 0? " " + number_to_words(n%1000): "");
 }
+
+/*
+/stats - list all members coffee consumption
+/today - list todays consumption, break down into individual members
+/me - get own stat
+*/
 
 
 bot.on('message', (msg) => {
@@ -38,7 +37,30 @@ bot.on('message', (msg) => {
         }
       })
       break
-
+    case "/stats":
+      getData((err, data) => {
+        if (err) {
+          error = JSON.stringify(err)
+          bot.sendMessage(msg.chat.id, `An error occurred! The details are as follows: ${error}`)
+        } else {
+          data.sort((a, b) => (a.total_cups_consumed < b.total_cups_consumed) ? 1 : -1)
+          response = data.map((user) => {
+            coffee_message =  user.total_cups_consumed + " coffee"
+            if (user.total_cups_consumed == 0 || user.total_cups_consumed > 1) coffee_message += "s"
+            today_message = user.cups_consumed_today ? user.cups_consumed_today  : "none"
+            average_message = Math.round((user.average_daily_cups + Number.EPSILON) * 100) / 100 + " cup"
+            days_message = "they had their first coffee today, congratulations!"
+            if (user.days_since_first_coffee != 0) {
+              days_message = "they had their first coffee " + user.days_since_first_coffee + " day"
+              if (user.days_since_first_coffee > 0) days_message += "s"
+              days_message += " ago."
+            }
+            if (user.average_daily_cups != 0) average_message += "s"
+            return `${user.real_name} has consumed ${coffee_message} in total, ${today_message} of them were today. They drink an average of ${average_message} per day, and ${days_message}`
+          }).join("\n")
+          bot.sendMessage(msg.chat.id, response)
+        }
+      }, false)
   }
 });
 
@@ -104,10 +126,16 @@ function getData(callback, include_data = true) {
         user_data.username = line.split(":")[0]
         user_data.real_name = line.split(":")[1]
         //Get list of when coffee was drank for user
+        all_times = line.split(":")[2].split(",")
         if (include_data) {
           //Only add list of timestamps to response if include_data is true
-          user_data.data = line.split(":")[2].split(",")
+          user_data.data = all_times
           user_data.data = removeBlank(user_data.data)
+        } else {
+          user_data.total_cups_consumed = all_times.length
+          user_data.cups_consumed_today = all_times.filter(is_today).length
+          user_data.days_since_first_coffee = Math.floor(new Date(new Date() - new Date(parseInt(all_times[0]))) / (1000 * 3600 * 24))
+          user_data.average_daily_cups = user_data.total_cups_consumed / user_data.days_since_first_coffee
         }
         return user_data
       })
