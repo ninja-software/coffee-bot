@@ -2,6 +2,46 @@ const routes = require('express').Router();
 const config = require("../../config")
 var fs = require('fs');
 
+const telegram_bot = require('node-telegram-bot-api');
+const bot = new telegram_bot(config.secrets.telegram_api_key, {polling: true});
+
+/*
+/drink - increment coffee count for command issuer
+/stats - list all members coffee consumption
+/today - list todays consumption, break down into individual members
+/me - get own stat
+*/
+
+var num = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" ");
+var tens = "twenty thirty forty fifty sixty seventy eighty ninety".split(" ");
+
+function number_to_words(n) {
+    if (n < 20) return num[n];
+    var digit = n%10;
+    if (n < 100) return tens[~~(n/10)-2] + (digit? "-" + num[digit]: "");
+    if (n < 1000) return num[~~(n/100)] +" hundred" + (n%100 == 0? "": " " + number_to_words(n%100));
+    return number_to_words(~~(n/1000)) + " thousand" + (n%1000 != 0? " " + number_to_words(n%1000): "");
+}
+
+
+bot.on('message', (msg) => {
+  switch (msg.text) {
+    case "/drink":
+      drinkCoffee("", msg.from.first_name, (err, data) => {
+        if (err) {
+          error = JSON.stringify(err)
+          bot.sendMessage(msg.chat.id, `An error occurred! The details are as follows: ${error}`)
+        } else if (data == -1) {
+          bot.sendMessage(msg.chat.id, `There is no user named "${msg.from.first_name}" in the coffee database!`)
+        } else {
+          bot.sendMessage(msg.chat.id, data.message)
+        }
+      })
+      break
+
+  }
+});
+
 //TODO: Create a better logging function that outputs errors to stdout and appends them to file for easier debugging
 //TODO: Fix inconsistent casing, eg. validateRealName(real_name)
 //TODO: Make the drinkCoffee method return the number of coffees that user has drank that day
@@ -98,7 +138,7 @@ function getUser(username, real_name, callback) {
   }, true)
 }
 
-function drinkCoffee(username, callback) {
+function drinkCoffee(username, real_name, callback) {
   fs.readFile(dataFile, (err, data) => {
     if (err) {
       console.log("drinkCoffee: Error reading users file!")
@@ -111,7 +151,7 @@ function drinkCoffee(username, callback) {
       var coffee_timestamps
       for (var line_number in lines) {
         line = lines[line_number]
-        if (line.split(":")[0] == username) {
+        if (line.split(":")[0] == username || line.split(":")[1] == real_name) {
           if (line.charAt(line.length - 1) != ":") {
             lines[line_number] += ","
           }
@@ -127,13 +167,17 @@ function drinkCoffee(username, callback) {
           if (err) {
             console.log("drinkCoffee: Error writing to users file!")
             console.log(err)
-            callback(err, -1)
+            callback(err, {amount: -1})
           } else {
-            callback(err, coffee_timestamps.length)
+            amount = coffee_timestamps.length
+            coffees = number_to_words(amount) + " coffee"
+            if (amount > 1) coffees += "s"
+            message = amount ? `You have drunk ${coffees} today!` : "This is your first coffee today!"      
+            callback(err, {amount: amount, message: message})
           }
         })
       } else {
-        callback(err, -1)
+        callback(err, {amount: -1})
       }
     }
   });
@@ -270,12 +314,12 @@ routes.post('/new_user', (req, res) => {
 })
 
 routes.post('/drink_coffee', (req, res) => {
-  drinkCoffee(req.body.username, (err, data) => {
+  drinkCoffee(req.body.username, req.body.real_name, (err, data) => {
     if (err) {
       res.status(500).json({success: false, error: err})
     } else {
-      if (data >= 0) {
-        res.status(200).json({success: true, coffees_drunk_today: data})
+      if (data.amount >= 0) {
+        res.status(200).json({success: true, data: data})
       } else {
         res.status(400).json({success: false, error: "User not found!"})
       }
