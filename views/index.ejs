@@ -52,7 +52,7 @@ function switch_mode(new_mode) {
   set_color("#292929")
   if (mode == "remove")set_color("#ed4337")
   if (mode == "add")add(this)
-  if (mode == "edit")set_color("#66cc33")
+  if (mode == "edit")set_color("#779ecb")
 }
 
 function cancel() {
@@ -226,18 +226,22 @@ nav button {
 }
 
 #remove {
+  border-radius: 16px 0px 0px 0px;
   background-color: red;
 }
 
 #edit {
   background-color: blue;
+  border-radius: 0;
 }
 
 #add {
+  border-radius: 0;
   background-color: green;
 }
 
 #cancel {
+  border-radius: 0px 0px 0px 16px;
   background-color: teal;
 }
 
@@ -259,7 +263,7 @@ nav {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-column-gap: 1%;
-  grid-row-gap: 1.5%;
+  grid-row-gap: 0.5%;
 }
 
 /* thai */
@@ -335,7 +339,7 @@ button {
   border: 0;
   height: 18vh;
   color: #eeeeee;
-  border-radius: 30%;
+  border-radius: 16px;
   width: 30vw;
   cursor: pointer;
   font-size: 4.5vw;
