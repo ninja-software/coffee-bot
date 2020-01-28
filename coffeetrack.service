@@ -1,0 +1,16 @@
+[Unit]
+Description = Tracks member coffee consumption.
+Before=network-online.target
+After=network.target
+
+[Service]
+User=root
+Type=simple
+Environment=DISPLAY=:0
+WorkingDirectory=/home/pi/src/coffee-bot/
+ExecStart=/bin/sh /home/pi/src/coffee-bot/start.sh
+Restart=Always
+TimeoutSec=infinity
+
+[Install]
+WantedBy=multi-user.target
