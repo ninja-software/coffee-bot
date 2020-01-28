@@ -523,9 +523,9 @@ routes.post('/new_user', (req, res) => {
   if (error) {
     res.status(400).json({success: false, error: error})
   } else {
-    getUser(req.body.username, null, function(err, data) {
-      if (data.length != 0) {
-        res.status(400).json({success: false, error: "Username is taken!"})
+    getUser(req.body.username, req.body.real_name, function(err, data) {
+      if (data != -1) {
+        res.status(400).json({success: false, error: "Username or real name is taken!"})
       } else {
         //Construct base line for new user
         line = req.body.username + ":" + req.body.real_name + ":\n"
