@@ -42,17 +42,21 @@ function toggle_menu() {
   }
 }
 
+function set_color(color) {
+  document.documentElement.style.setProperty("--button-background", color)
+}
+
 function switch_mode(new_mode) {
   toggle_menu()
   mode = new_mode
-  coffee_addicts.style.backgroundColor = "#292929"  
-  if (mode == "remove")coffee_addicts.style.backgroundColor = "#ed4337"
+  set_color("#292929")
+  if (mode == "remove")set_color("#ed4337")
   if (mode == "add")add(this)
-  if (mode == "edit")coffee_addicts.style.backgroundColor = "#66cc33"
+  if (mode == "edit")set_color("#66cc33")
 }
 
 function cancel() {
-  coffee_addicts.style.backgroundColor = "#292929"
+  set_color("#292929")
   mode = "default"
   toggle_menu()
 }
@@ -167,6 +171,10 @@ load()
 
 <style>
 
+:root {
+ --button-background: #292929; 
+}
+
 a {
   color: white;
   line-height: 0%;
@@ -246,8 +254,6 @@ nav {
 }
 
 #coffee_addicts {
-  visibility: hidden;
-  background-color: #292929; 
   position: absolute;
   top: 20%;
   display: grid;
@@ -325,7 +331,7 @@ button {
   -moz-appearance: none;
   appearance: none;
   outline: 0;
-  background-color: inherit;
+  background-color: var(--button-background);
   border: 0;
   height: 18vh;
   color: #eeeeee;
