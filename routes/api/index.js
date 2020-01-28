@@ -528,16 +528,26 @@ routes.post('/new_user', (req, res) => {
         res.status(400).json({success: false, error: "Username or real name is taken!"})
       } else {
         //Construct base line for new user
-        line = req.body.username + ":" + req.body.real_name + ":\n"
-        fs.appendFile(dataFile, line, function (err) {
+        fs.readFile(dataFile, function(err, content) {
           if (err) {
-            console.log("/api/new_user: Error appending to users file!")
+            console.log("/api/new_user: Error reading users file")
             console.log(err)
             res.status(500).json({success: false, error: err})
           } else {
-            res.status(200).json({success: true})
+            line = ""
+            if (content[content.length - 1] != "\n") line = "\n"
+            line += req.body.username + ":" + req.body.real_name + ":"
+            fs.appendFile(dataFile, line, function (err) {
+              if (err) {
+                console.log("/api/new_user: Error appending to users file!")
+                console.log(err)
+                res.status(500).json({success: false, error: err})
+              } else {
+                res.status(200).json({success: true})
+              }
+            });
           }
-        });
+        })
       }
     })
   }
