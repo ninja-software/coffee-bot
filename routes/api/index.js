@@ -99,7 +99,7 @@ function time_ago(diff) {
 }
 
 function round_to_decimal_places(number, dp) {
-  return Math.round((number + Number.EPSILON) * (10 ** dp)) / (10 ** dp) 
+  return Math.round((number + Number.EPSILON) * (10 ** dp)) / (10 ** dp)
 }
 
 bot.on('message', (msg) => {
@@ -109,9 +109,10 @@ bot.on('message', (msg) => {
         if (err) {
           error = JSON.stringify(err)
           bot.sendMessage(msg.chat.id, `An error occurred! The details are as follows: ${error}`)
-        } else if (data == -1) {
+        } else if (data.amount == -1) {
           bot.sendMessage(msg.chat.id, `There is no user named "${msg.from.first_name}" in the coffee database!`)
         } else {
+        console.log(data)
           bot.sendMessage(msg.chat.id, data.message)
         }
       })
@@ -278,13 +279,15 @@ function getData(callback, include_data = true) {
       users = users.split("\n")
       //Remove empty lines as they can mess with the parsing
       users = removeBlank(users)
+      //Filter hidden users out from response
+      users = users.filter(e => {return e[0] == "0"})
       //Construct JSON array from lines
       var json_data = users.map((line) => {
         var user_data = {}
-        user_data.username = line.split(":")[0]
-        user_data.real_name = line.split(":")[1]
+        user_data.username = line.split(":")[1]
+        user_data.real_name = line.split(":")[2]
         //Get list of when coffee was drank for user
-        all_times = line.split(":")[2].split(",")
+        all_times = line.split(":")[3].split(",")
         if (include_data) {
           //Only add list of timestamps to response if include_data is true
           user_data.data = all_times
@@ -311,7 +314,7 @@ function getStats(callback) {
       users = removeBlank(users)
       var all_times = []
       for (var user of users) {
-        all_times = all_times.concat(user.split(":")[2].split(","))
+        all_times = all_times.concat(user.split(":")[3].split(","))
       }
       all_times = all_times.map(e => parseInt(e))
       all_times.sort()
@@ -371,12 +374,12 @@ function drinkCoffee(username, real_name, callback) {
       var coffee_timestamps
       for (var line_number in lines) {
         line = lines[line_number]
-        if (line.split(":")[0] == username || line.split(":")[1] == real_name) {
+        if (line.split(":")[1] == username || line.split(":")[2] == real_name) {
           if (line.charAt(line.length - 1) != ":") {
             lines[line_number] += ","
           }
           //Append the current unix timestamp
-          coffee_timestamps = lines[line_number].split(":")[2].split(",")
+          coffee_timestamps = lines[line_number].split(":")[3].split(",")
           coffee_timestamps = coffee_timestamps.filter(is_today)
           lines[line_number] += +new Date()
           wrote = true
@@ -412,8 +415,13 @@ function deleteUser(username, callback) {
     } else {
       var content = data.toString()
       var lines = removeBlank(content.split("\n"))
-      lines = lines.filter((line) => {
-        return line.split(":")[0] != username
+      lines = lines.map((line) => {
+        if (line.split(":")[1] == username) {
+          line = line.split(":")
+          line[0] = "1"
+          return line.join(":")
+        }
+        return line
       })
       fs.writeFile(dataFile, lines.join("\n"), (err) => {
         if (err) {
@@ -438,15 +446,16 @@ function updateUser(username, new_username, new_real_name, callback) {
       var content = data.toString()
       var lines = removeBlank(content.split("\n"))
       lines = lines.map((line) => {
-        if (line.split(":")[0] != username) {
+        if (line.split(":")[1] != username) {
           return line
         }
         new_line = line.split(":")
+        new_line[0] = "0"
         if (new_username) {
-          new_line[0] = new_username
+          new_line[1] = new_username
         }
         if (new_real_name) {
-          new_line[1] = new_real_name
+          new_line[2] = new_real_name
         }
         return new_line.join(":")
       })
@@ -536,7 +545,7 @@ routes.post('/new_user', (req, res) => {
           } else {
             line = ""
             if (content[content.length - 1] != "\n") line = "\n"
-            line += req.body.username + ":" + req.body.real_name + ":"
+            line += "0:" + req.body.username + ":" + req.body.real_name + ":"
             fs.appendFile(dataFile, line, function (err) {
               if (err) {
                 console.log("/api/new_user: Error appending to users file!")
@@ -582,6 +591,7 @@ routes.post('/delete_user', (req, res) => {
 });
 
 routes.post('/update_user', (req, res) => {
+  var error = ""
   if (req.body.new_username) {
     error = validateUsername(req.body.new_username)
   }
