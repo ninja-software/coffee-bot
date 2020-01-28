@@ -139,6 +139,7 @@ bot.on('message', (msg) => {
             if (user.average_daily_cups != 0) average_message += "s"
             return `${user.real_name} has consumed ${coffee_message} in total, ${today_message} of them ${was_were} today. They drink an average of ${average_message} per day, and ${days_message}`
           }).join("\n")
+          if (response.length == 0) response = "There are no users in the database!"
           bot.sendMessage(msg.chat.id, response)
         }
       }, false)
@@ -169,7 +170,7 @@ bot.on('message', (msg) => {
                 if (user.cups_consumed_today == 0 || user.cups_consumed_today > 1) cups_message += "s"
                 return `${user.real_name} has consumed ${cups_message} today.`
               }).join("\n")
-              bot.sendMessage(msg.chat.id, message)
+            bot.sendMessage(msg.chat.id, message)
             }
           })
         }
