@@ -98,9 +98,9 @@ function time_ago(diff) {
   return Math.floor(diff / 1000) + "s";
 }
 
-/*
-/me - get own stat
-*/
+function round_to_decimal_places(number, dp) {
+  return Math.round((number + Number.EPSILON) * (10 ** dp)) / (10 ** dp) 
+}
 
 bot.on('message', (msg) => {
   switch (msg.text) {
@@ -127,7 +127,8 @@ bot.on('message', (msg) => {
             coffee_message =  user.total_cups_consumed + " coffee"
             if (user.total_cups_consumed == 0 || user.total_cups_consumed > 1) coffee_message += "s"
             today_message = user.cups_consumed_today ? user.cups_consumed_today  : "none"
-            average_message = Math.round((user.average_daily_cups + Number.EPSILON) * 100) / 100 + " cup"
+            was_were = (user.cups_consumed_today > 1) ? "were" : "was"
+            average_message = round_to_decimal_places(user.average_daily_cups, 2) + " cup"
             days_message = "they had their first coffee today, congratulations!"
             if (user.days_since_first_coffee != 0) {
               days_message = "they had their first coffee " + user.days_since_first_coffee + " day"
@@ -135,49 +136,85 @@ bot.on('message', (msg) => {
               days_message += " ago."
             }
             if (user.average_daily_cups != 0) average_message += "s"
-            return `${user.real_name} has consumed ${coffee_message} in total, ${today_message} of them were today. They drink an average of ${average_message} per day, and ${days_message}`
+            return `${user.real_name} has consumed ${coffee_message} in total, ${today_message} of them ${was_were} today. They drink an average of ${average_message} per day, and ${days_message}`
           }).join("\n")
           bot.sendMessage(msg.chat.id, response)
         }
       }, false)
       break
-      case "/today":
-        getData((err, data) => {
-          if (err) {
-            error = JSON.stringify(err)
-            bot.sendMessage(msg.chat.id, `An error occurred! The details are as follows: ${error}`)
-          } else {
-            data.sort((a, b) => (a.cups_consumed_today < b.cups_consumed_today) ? 1 : -1)
-            had_coffee_today = data.filter(e => e.cups_consumed_today > 0)
-            getStats((err, data) => {
-              if (err) {
-                error = JSON.stringify(err)
-                bot.sendMessage(msg.chat.id, `An error occurred! The details are as follows: ${error}`)
-              } else {
-                today_message = data.coffees_consumed_today + " cup"
-                if (data.coffees_consumed_today == 0 || data.coffees_consumed_today > 1) today_message += "s"
-                message = `${today_message} of coffee have been consumed today.`
-                if (data.coffees_consumed_today > 0) {
-                  time_ago_message = time_ago(data.last_consumed)
-                  message += ` The last coffee was consumed ${time_ago_message} ago.`
-                }
-                message += "\n"
-                message += had_coffee_today.map((user) => {
-                  cups_message = user.cups_consumed_today + " cup"
-                  if (user.cups_consumed_today == 0 || user.cups_consumed_today > 1) cups_message += "s"
-                  return `${user.real_name} has consumed ${cups_message} today.`
-                }).join("\n")
-                bot.sendMessage(msg.chat.id, message)
+    case "/today":
+      getData((err, data) => {
+        if (err) {
+          error = JSON.stringify(err)
+          bot.sendMessage(msg.chat.id, `An error occurred! The details are as follows: ${error}`)
+        } else {
+          data.sort((a, b) => (a.cups_consumed_today < b.cups_consumed_today) ? 1 : -1)
+          had_coffee_today = data.filter(e => e.cups_consumed_today > 0)
+          getStats((err, data) => {
+            if (err) {
+              error = JSON.stringify(err)
+              bot.sendMessage(msg.chat.id, `An error occurred! The details are as follows: ${error}`)
+            } else {
+              today_message = data.coffees_consumed_today + " cup"
+              if (data.coffees_consumed_today == 0 || data.coffees_consumed_today > 1) today_message += "s"
+              message = `${today_message} of coffee have been consumed today.`
+              if (data.coffees_consumed_today > 0) {
+                time_ago_message = time_ago(data.last_consumed)
+                message += ` The last coffee was consumed ${time_ago_message} ago.`
               }
-            })
+              message += "\n"
+              message += had_coffee_today.map((user) => {
+                cups_message = user.cups_consumed_today + " cup"
+                if (user.cups_consumed_today == 0 || user.cups_consumed_today > 1) cups_message += "s"
+                return `${user.real_name} has consumed ${cups_message} today.`
+              }).join("\n")
+              bot.sendMessage(msg.chat.id, message)
+            }
+          })
+        }
+      }, false)
+      break
+    case "/me":
+      getUser("", msg.from.first_name, (err, data) => {
+        if (err) {
+          error = JSON.stringify(err)
+          bot.sendMessage(msg.chat.id, `An error occurred! The details are as follows: ${error}`)
+        } else if (data == -1) {
+          bot.sendMessage(msg.chat.id, `There is no user named "${msg.from.first_name}" in the coffee database!`)
+        } else {
+          message = "You have never drank a coffee!"
+          if (data.total_cups_consumed > 0) {
+            message = `You have consumed ${data.total_cups_consumed} cup`
+            if (data.total_cups_consumed > 1) message += "s"
+            was_were = (data.cups_consumed_today > 1) ? "were" : "was"
+            today_message = "none of them were today"
+            if (data.cups_consumed_today > 0) today_message = `${data.cups_consumed_today} of them ${was_were} today`
+            first_coffee_message = "You drank your first coffee today!"
+            if (data.days_since_first_coffee > 0) {
+              first_coffee_message = `You drank your first coffee ${data.days_since_first_coffee} day`
+              if (data.days_since_first_coffee > 1) first_coffee_message += "s"
+            }
+            first_coffee_message += " ago"
+            rounded_daily_cups = round_to_decimal_places(data.average_daily_cups, 2)
+            average_message = `You drink an average of ${rounded_daily_cups} cup`
+            if (data.average_daily_cups != 1) average_message += "s"
+            position_message = `You are the #${data.position + 1} coffee drinker`
+            if (data.position == 0) {
+              position_message += ", congratulations!"
+            } else {
+              position_message += "."
+            }
+            message += ` of coffee in total, ${today_message}. ${first_coffee_message}. ${average_message} of coffee per day. ${position_message}`
           }
-        }, false)
+          bot.sendMessage(msg.chat.id, message)
+        }
+      })
+      break
   }
 });
 
 //TODO: Create a better logging function that outputs errors to stdout and appends them to file for easier debugging
 //TODO: Fix inconsistent casing, eg. validateRealName(real_name)
-//TODO: Make the drinkCoffee method return the number of coffees that user has drank that day
 //TODO: Consider using sqlite or some ORM instead of a delimited text file, this may not be necessary but for large amounts of data this implementation might become too slow
 //TODO: Move code from new_user API into a newUser function
 //TODO: Comment res.json calls
@@ -296,16 +333,25 @@ function getUser(username, real_name, callback) {
     } else {
       //Filter all results down to the desired user
       if (username) {
-        data = data.filter((user) => { return user.username == username })
+        new_data = data.filter((user) => { return user.username == username })
       }
       if (real_name) {
-        data = data.filter((user) => { return user.real_name == real_name })
+        new_data = data.filter((user) => { return user.real_name == real_name })
       }
-      if (data.length == 0) {
-        callback(err, [])
+      if (new_data.length == 0) {
+        callback(err, -1)
       } else {
-        var user_data = data[0]
+        var user_data = new_data[0]
         Object.assign(user_data, getStatsFromTimes(user_data.data))
+        data = data.map(e => {
+          e.total_cups_consumed = e.data.length
+          return e
+        })
+        data.sort((a, b) => (a.total_cups_consumed < b.total_cups_consumed) ? 1 : -1)
+        position = data.findIndex(function(user) {
+          return user.username == username || user.real_name == real_name
+        })
+        Object.assign(user_data, {position: position})
         callback(err, user_data)
       }
     }
@@ -460,8 +506,8 @@ routes.get('/get_user', (req, res) => {
     if (err) {
       res.status(500).json({success: false, err: error})
     } else {
-      if (data.length == 0) {
-        res.status(200).json({success: false, error: "User not found!", user: []})
+      if (data == -1) {
+        res.status(200).json({success: false, error: "User not found!"})
       } else {
         res.status(200).json({success: true, user: data})
       }
