@@ -7,7 +7,19 @@
 <body>
 
 <nav>
-<h1>Coffee Tracker</h1>
+<h1 class="center">Coffee Tracker</h1>
+
+<div class="right">
+  <a id="hamburger" href="javascript:void(0);" class="icon" onclick=toggle_menu()>
+    <i class="fa fa-bars"></i>
+  </a>
+<div id="options">
+<button id="remove" onclick=switch_mode('remove')>Remove</button>
+<button id="edit" onclick=switch_mode('edit')>Edit</button>
+<button id="add" onclick=switch_mode('add')>Add</button>
+<button id="cancel" onclick=cancel()>Cancel</button>
+</div>
+</div>
 </nav>
 
 <div id="coffee_addicts"></div>
@@ -16,21 +28,96 @@
 
 <script>
 
-function track_coffee() {
-  POST("/api/drink_coffee", `username=${this.username}`, (data) => {
+mode = "default"
+
+function toggle_menu() {
+  var x = document.getElementById("options");
+  var y = document.getElementById("hamburger");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+    y.style.display = "block"
+  } else {
+    x.style.display = "block";
+    y.style.display = "none"
+  }
+}
+
+function switch_mode(new_mode) {
+  toggle_menu()
+  mode = new_mode
+  coffee_addicts.style.backgroundColor = "#292929"  
+  if (mode == "remove")coffee_addicts.style.backgroundColor = "#ed4337"
+  if (mode == "add")add(this)
+  if (mode == "edit")coffee_addicts.style.backgroundColor = "#66cc33"
+}
+
+function cancel() {
+  coffee_addicts.style.backgroundColor = "#292929"
+  mode = "default"
+  toggle_menu()
+}
+
+function edit_user(button) {
+  new_username = prompt("New username? (Leave blank to keep current)")
+  new_real_name = prompt("New real name? (Leave blank to keep current)")
+  str = [`username=${button.username}`]
+  if (new_username) str.push(`new_username=${new_username}`)
+  if (new_real_name) str.push(`new_real_name=${new_real_name}`)
+  if (str.length > 1) {
+    POST("/api/update_user", str.join("&"), (data) => {
+      if (!data.success) {error(data.error)} else {
+        load()
+      }
+    })
+  } else {
+    alert("You must change at least one field!");
+  }
+}
+
+function add() {
+  toggle_menu()
+  username = prompt("What is the username of the person you would like to add?")
+  real_name = prompt("What is the real name of the person you would like to add?")
+  POST("/api/new_user", `username=${username}&real_name=${real_name}`, (data) => {
+    if (!data.success) {error(data.error)} else {
+      load()
+    }
+  })
+}
+
+function remove_user(button) {
+  POST("/api/delete_user", `username=${button.username}`, (data) => {
+    if (!data.success) {error(data.error)} else {
+      load()
+    }
+  })
+}
+
+function handle_click() {
+  if (mode == "default") track_coffee(this)
+  if (mode == "remove") remove_user(this)
+  if (mode == "edit") edit_user(this)
+}
+
+function error(json) {
+  Swal.fire({
+    icon: 'error',
+    title: 'Oops...',
+    text: JSON.stringify(json)
+ })
+}
+
+function track_coffee(button) {
+  POST("/api/drink_coffee", `username=${button.username}`, (data) => {
     if (data.success) {
       Swal.fire({
         imageUrl: 'https://i.imgur.com/T2pMn7L.gif',
         imageAlt: 'A sizzling coffee',
-        title: this.innerText,
+        title: button.innerText,
         text: data.data.message
       })
     } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: JSON.stringify(error),
-      })
+      error(data.error)
     }
   })
 }
@@ -57,20 +144,94 @@ function POST(url, data, callback) {
 
 }
 
-GET("/api/users", (data) => {
-  coffee_addicts = document.querySelector("#coffee_addicts")
-  data.users.map((user) => {
-    button = document.createElement("button")
-    button.innerText = user.real_name
-    button.username = user.username
-    button.onclick = track_coffee
-    coffee_addicts.appendChild(button)
+coffee_addicts = document.getElementById("coffee_addicts")
+
+function load() {
+  GET("/api/users", (data) => {
+    coffee_addicts.innerHTML = ""
+    data.users.map((user) => {
+      button = document.createElement("button")
+      button.innerText = user.real_name
+      button.username = user.username
+      button.onclick = handle_click
+      coffee_addicts.appendChild(button)
+    })
   })
-})
+}
+
+load()
 
 </script>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
 <style>
+
+a {
+  color: white;
+  line-height: 0%;
+  padding: 5vh 5vh;
+  text-decoration: none;
+  font-size: 17px;
+  display: block;
+  border-radius: 0px 0px 0px 10%;
+}
+
+a.icon {
+  background: black;
+  display: block;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+a:hover {
+  background-color: #bbb;
+  color: black;
+}
+
+#options {
+  display: none;
+}
+
+#options button {
+  width: 20vw;
+  font-size: 3vw;
+  height: 10vh;
+}
+
+nav .center {
+  width: 60%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+nav .right {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+nav button {
+  height: 15vh;
+  width: 20vw;
+}
+
+#remove {
+  background-color: red;
+}
+
+#edit {
+  background-color: blue;
+}
+
+#add {
+  background-color: green;
+}
+
+#cancel {
+  background-color: teal;
+}
 
 nav {
   position: fixed;
@@ -78,13 +239,15 @@ nav {
   height: 15%;
   width: 100%;
   background: linear-gradient(123deg, rgba(25,25,25,1) 0%, rgba(39,39,39,1) 100%); 
-  display: flex;
-  justify-content: center;
-  align-items: center;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #coffee_addicts {
+  visibility: hidden;
+  background-color: #292929; 
   position: absolute;
   top: 20%;
   display: grid;
@@ -152,19 +315,21 @@ body {
 
 h1, h2 {
   color: #fafafa;
+  font-size: 3.5vh;
 }
 
 button {
+  visibility: visible;
   display: block;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   outline: 0;
-  background-color: #292929;
+  background-color: inherit;
   border: 0;
   height: 18vh;
   color: #eeeeee;
-  border-radius: 3px;
+  border-radius: 30%;
   width: 30vw;
   cursor: pointer;
   font-size: 4.5vw;
@@ -172,6 +337,8 @@ button {
   text-align: center;
   white-space: normal;
   word-wrap: break-word;
+  opacity: 0.8;
+  border-radius: 10px;
 }
 
 button:focus {
@@ -182,7 +349,7 @@ button:focus {
 }
 
 button:hover {
-  background-color: #242424;
+  opacity: 1;
 }
 
 .swal2-confirm {
