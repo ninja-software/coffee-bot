@@ -2,6 +2,7 @@ const routes = require('express').Router();
 const config = require("../../config")
 var fs = require('fs');
 
+process.env.NTBA_FIX_319 = 1
 const telegram_bot = require('node-telegram-bot-api');
 const bot = new telegram_bot(config.secrets.telegram_api_key, {polling: true});
 
@@ -47,7 +48,7 @@ function get_working_days(startDate, endDate) {
   var millisecondsPerDay = 86400 * 1000; // Day in milliseconds
   startDate.setHours(0,0,0,1);  // Start just after midnight
   endDate.setHours(23,59,59,999);  // End just before midnight
-  var diff = endDate - startDate;  // Milliseconds between datetime objects    
+  var diff = endDate - startDate;  // Milliseconds between datetime objects
   var days = Math.ceil(diff / millisecondsPerDay);
 
   // Subtract two weekend days for every week in between
@@ -58,17 +59,17 @@ function get_working_days(startDate, endDate) {
   var startDay = startDate.getDay();
   var endDay = endDate.getDay();
 
-  // Remove weekend not previously removed.   
-  if (startDay - endDay > 1)         
-      days = days - 2;      
+  // Remove weekend not previously removed.
+  if (startDay - endDay > 1)
+      days = days - 2;
 
   // Remove start day if span starts on Sunday but ends before Saturday
   if (startDay == 0 && endDay != 6)
-      days = days - 1  
+      days = days - 1
 
   // Remove end day if span ends on Saturday but starts after Sunday
   if (endDay == 6 && startDay != 0)
-      days = days - 1  
+      days = days - 1
 
   // substract the holiday dates from the original calculation and return to the DOM
   return days - z;
@@ -98,7 +99,6 @@ function time_ago(diff) {
 }
 
 /*
-/today - list todays consumption, break down into individual members
 /me - get own stat
 */
 
@@ -159,7 +159,6 @@ bot.on('message', (msg) => {
                 message = `${today_message} of coffee have been consumed today.`
                 if (data.coffees_consumed_today > 0) {
                   time_ago_message = time_ago(data.last_consumed)
-                  console.log(data.last_consumed)
                   message += ` The last coffee was consumed ${time_ago_message} ago.`
                 }
                 message += "\n"
@@ -222,6 +221,16 @@ function removeBlank(data) {
   return data.filter((element) => { return element != "" })
 }
 
+function getStatsFromTimes(times) {
+  var user_data = {}
+  user_data.total_cups_consumed = times.length
+  user_data.cups_consumed_today = times.filter(is_today).length
+  first_coffee = new Date(parseInt(times[0]))
+  user_data.days_since_first_coffee = Math.floor(new Date(new Date() - first_coffee) / (1000 * 3600 * 24))
+  user_data.average_daily_cups = user_data.total_cups_consumed / get_working_days(first_coffee, new Date())
+  return user_data
+}
+
 function getData(callback, include_data = true) {
   fs.readFile(dataFile, function(err, data) {
     if (err) {
@@ -244,11 +253,7 @@ function getData(callback, include_data = true) {
           user_data.data = all_times
           user_data.data = removeBlank(user_data.data)
         } else {
-          user_data.total_cups_consumed = all_times.length
-          user_data.cups_consumed_today = all_times.filter(is_today).length
-          first_coffee = new Date(parseInt(all_times[0]))
-          user_data.days_since_first_coffee = Math.floor(new Date(new Date() - first_coffee) / (1000 * 3600 * 24))
-          user_data.average_daily_cups = user_data.total_cups_consumed / get_working_days(first_coffee, new Date())
+          Object.assign(user_data, getStatsFromTimes(all_times))
         }
         return user_data
       })
@@ -299,7 +304,9 @@ function getUser(username, real_name, callback) {
       if (data.length == 0) {
         callback(err, [])
       } else {
-        callback(err, data[0])
+        var user_data = data[0]
+        Object.assign(user_data, getStatsFromTimes(user_data.data))
+        callback(err, user_data)
       }
     }
   }, true)
@@ -339,7 +346,7 @@ function drinkCoffee(username, real_name, callback) {
             amount = coffee_timestamps.length
             coffees = number_to_words(amount) + " coffee"
             if (amount > 1) coffees += "s"
-            message = amount ? `You have drunk ${coffees} today!` : "This is your first coffee today!"      
+            message = amount ? `You have drunk ${coffees} today!` : "This is your first coffee today!"
             callback(err, {amount: amount, message: message})
           }
         })
