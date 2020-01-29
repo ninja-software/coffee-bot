@@ -104,6 +104,13 @@ function round_to_decimal_places(number, dp) {
 
 bot.on('message', (msg) => {
   switch (msg.text) {
+    case "/help":
+      message = "/drink - Increments your coffee counter\n"
+      message += "/stats - Gives detailed statistics about everyone's coffee consumption\n"
+      message += "/today - Shows statistics about today's coffee consumption\n"
+      message += "/me - Shows statistics about your coffee consumption"
+      bot.sendMessage(msg.chat.id, message)
+      break
     case "/drink":
       drinkCoffee("", msg.from.first_name, (err, data) => {
         if (err) {
