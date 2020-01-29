@@ -6,8 +6,13 @@
 
 <body>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="HandheldFriendly" content="true" />
+
 <nav>
 <h1 class="center">Coffee Tracker</h1>
+<button id="fullscreen" onclick=request_fullscreen()>Fullscreen</button>
+
 
 <div class="right">
   <a id="hamburger" href="javascript:void(0);" class="icon" onclick=toggle_menu()>
@@ -44,6 +49,11 @@ function toggle_menu() {
 
 function set_color(color) {
   document.documentElement.style.setProperty("--button-background", color)
+}
+
+function request_fullscreen() {
+document.querySelector("#fullscreen").style.display = "none"
+document.documentElement.requestFullscreen()
 }
 
 function switch_mode(new_mode) {
@@ -223,6 +233,14 @@ nav .right {
   top: 0;
 }
 
+nav #fullscreen {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 25vw !important;
+  height: 80%;
+}
+
 nav button {
   height: 15vh;
   width: 20vw;
@@ -303,6 +321,7 @@ nav {
 }
 
 body {
+  overflow: scroll;
   margin: 0;
   height: 100%;
   min-height: 100vh;
