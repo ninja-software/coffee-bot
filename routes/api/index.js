@@ -9,6 +9,21 @@ const bot = new telegram_bot(config.secrets.telegram_api_key, {polling: true});
 var num = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" ");
 var tens = "twenty thirty forty fifty sixty seventy eighty ninety".split(" ");
 
+function ordinal_suffix_of(i) {
+    var j = i % 10,
+        k = i % 100;
+    if (j == 1 && k != 11) {
+        return i + "st";
+    }
+    if (j == 2 && k != 12) {
+        return i + "nd";
+    }
+    if (j == 3 && k != 13) {
+        return i + "rd";
+    }
+    return i + "th";
+}
+
 function number_to_words(n) {
     if (n < 20) return num[n];
     var digit = n%10;
@@ -404,7 +419,8 @@ function drinkCoffee(username, real_name, callback) {
             amount = coffee_timestamps.length
             coffees = number_to_words(amount) + " coffee"
             if (amount > 1) coffees += "s"
-            message = amount ? `You have drunk ${coffees} today!` : "This is your first coffee today!"
+            ordinal = ordinal_suffix_of(amount + 1)
+            message = `This is your ${ordinal} coffee today!`
             callback(err, {amount: amount, message: message})
           }
         })
