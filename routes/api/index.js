@@ -385,6 +385,45 @@ function getUser(username, real_name, callback) {
   }, true)
 }
 
+function removeLastCoffee(username, real_name, callback) {
+  fs.readFile(dataFile, (err, data) => {
+    if (err) {
+      console.log("removeLastCoffee: Error reading users file!")
+      console.log(err)
+      callback(err, false)
+    } else {
+      var content = data.toString()
+      var lines = removeBlank(content.split("\n"))
+      var wrote = false
+      var coffee_timestamps
+      for (var line_number in lines) {
+        line = lines[line_number]
+        if (line.split(":")[1] == username || line.split(":")[2] == real_name) {
+          content = line.split(":")
+          coffee_timestamps = content[3]
+          coffee_timestamps.splice(coffee_timestamps.length - 1)
+          content[3] = coffee_timestamps
+          lines[line_number] = content.join(":")
+          wrote = true
+        }
+      }
+      if (wrote) {
+        fs.writeFile(dataFile, lines.join("\n"), (err) => {
+          if (err) {
+            console.log("removeLastCoffee: Error writing to users file!")
+            console.log(err)
+            callback(err, -1)
+          } else {
+            callback(err, 1)
+          }
+        })
+      } else {
+        callback(err, 0)
+      }
+    }
+  });
+}
+
 function drinkCoffee(username, real_name, callback) {
   fs.readFile(dataFile, (err, data) => {
     if (err) {
@@ -599,6 +638,20 @@ routes.post('/drink_coffee', (req, res) => {
         res.status(200).json({success: true, data: data})
       } else {
         res.status(400).json({success: false, error: "User not found!"})
+      }
+    }
+  })
+});
+
+routes.post('/remove_last_coffee', (req, res) => {
+  removeLastCoffee(req.body.username, req.body.real_name, (err, data) => {
+    if (err) {
+      res.status(500).json({success: false, error: err})
+    } else {
+      if (data == 0) {
+        res.status(400).json({success: false, error: "User not found!"})
+      } else {
+        res.status(200).json({success: true})
       }
     }
   })
