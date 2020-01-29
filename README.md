@@ -55,6 +55,7 @@ The web server has an API, you can find the documentation at http://localhost:30
 
 The Telegram bot supports the following commands:
 ```
+/help
 /drink
 /stats
 /today
