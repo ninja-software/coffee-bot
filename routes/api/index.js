@@ -85,7 +85,7 @@ var periods = {
 
 function time_ago(diff) {
   if (diff > periods.month) {
-    return Math.floor(diff / periods.month) + "m";
+    return Math.floor(diff / periods.month) + "mth";
   } else if (diff > periods.week) {
     return Math.floor(diff / periods.week) + "w";
   } else if (diff > periods.day) {
@@ -131,22 +131,13 @@ bot.on('message', (msg) => {
         } else {
           data = data.filter(e => {return !e.hidden})
           data.sort((a, b) => (a.total_cups_consumed < b.total_cups_consumed) ? 1 : -1)
-          response = data.map((user) => {
+          response = "Name:Coffees today:Total Coffees:Average daily:Last coffee\n"
+          response += data.map((user) => {
             if (user.total_cups_consumed == 0)return `${user.real_name} has never had a coffee!`
-            coffee_message =  user.total_cups_consumed + " coffee"
-            if (user.total_cups_consumed == 0 || user.total_cups_consumed > 1) coffee_message += "s"
-            today_message = user.cups_consumed_today ? user.cups_consumed_today  : "none"
-            was_were = (user.cups_consumed_today > 1) ? "were" : "was"
-            average_message = round_to_decimal_places(user.average_daily_cups, 2) + " cup"
-            days_message = "they had their first coffee today, congratulations!"
-            if (user.days_since_first_coffee != 0) {
-              days_message = "they had their first coffee " + user.days_since_first_coffee + " day"
-              if (user.days_since_first_coffee > 0) days_message += "s"
-              days_message += " ago."
-            }
-            if (user.average_daily_cups != 1) average_message += "s"
-            return `${user.real_name} has consumed ${coffee_message} in total, ${today_message} of them ${was_were} today. They drink an average of ${average_message} per day, and ${days_message}`
-          }).join("\n")
+            avg_daily = round_to_decimal_places(user.average_daily_cups, 2)
+            last_consumed = time_ago(user.last_consumed)
+            return `${user.real_name}    🕒 ${user.cups_consumed_today}     ☕ ${user.total_cups_consumed}     📊 ${avg_daily}   ${last_consumed} ago`
+          }).join("\n\n")
           if (response.length == 0) response = "There are no users in the database!"
           bot.sendMessage(msg.chat.id, response)
         }
@@ -274,12 +265,12 @@ function getStatsFromTimes(times) {
   user_data.total_cups_consumed = times.length
   user_data.cups_consumed_today = times.filter(is_today).length
   first_coffee = new Date(parseInt(times[0]))
-  console.log(times)
   user_data.days_since_first_coffee = Math.floor(new Date(new Date() - first_coffee) / (1000 * 3600 * 24))
   user_data.average_daily_cups = user_data.total_cups_consumed / get_working_days(first_coffee, new Date())
-  console.log(user_data.days_since_first_coffee)
+  user_data.last_consumed = new Date() - new Date(parseInt(times[times.length - 1]))
   if (!user_data.days_since_first_coffee && user_data.days_since_first_coffee != 0)user_data.days_since_first_coffee = -1
   if (!user_data.average_daily_cups && user_data.average_daily_cups != 0)user_data.average_daily_cups=0
+  if (!user_data.last_consumed && user_data.last_consumed != 0)user_data.last_consumed = -1
   return user_data
 }
 
