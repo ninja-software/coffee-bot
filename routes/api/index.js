@@ -400,9 +400,9 @@ function removeLastCoffee(username, real_name, callback) {
         line = lines[line_number]
         if (line.split(":")[1] == username || line.split(":")[2] == real_name) {
           content = line.split(":")
-          coffee_timestamps = content[3]
+          coffee_timestamps = content[3].split(",")
           coffee_timestamps.splice(coffee_timestamps.length - 1)
-          content[3] = coffee_timestamps
+          content[3] = coffee_timestamps.join(",")
           lines[line_number] = content.join(":")
           wrote = true
         }
