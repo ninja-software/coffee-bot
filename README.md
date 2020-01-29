@@ -3,6 +3,11 @@
 Node.JS script to track how much coffee each member is drinking.
 It uses Express to host a web server on port 3000, and hooks into Telegram to show statistics.
 
+## Screenshots
+![Main page](https://raw.githubusercontent.com/ninja-software/coffee-bot/master/screenshots/coffee_bot.png)
+![User management](https://raw.githubusercontent.com/ninja-software/coffee-bot/master/screenshots/dropdown.png)
+![Telegram bot](https://raw.githubusercontent.com/ninja-software/coffee-bot/master/screenshots/telegram.png)
+
 ## Install
 ```
 git clone https://github.com/ninja-software/coffee-bot
