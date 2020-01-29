@@ -13,3 +13,5 @@ cp -R /tmp/coffee-bot/* $location
 mkdir $location/data_directory
 cp -R /tmp/data_directory/* $location/data_directory
 cp /tmp/secrets.js $location/secrets.js
+cd /
+cd $location
