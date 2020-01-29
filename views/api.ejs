@@ -66,6 +66,17 @@ Response: {success: true, data: {coffees_drunk_today: 2, message: "You have drun
 <br>
 <br>
 
+<b>POST /api/remove_last_coffee</b>
+<p>Body format: <code>username=[username]&real_name=[real_name]</code></p>
+<p>Removes the last coffee entry from a user, provided their username or real name. Example:</p>
+<code>Request: POST /api/drink_coffee<br>
+Body: username=bOb_123<br>
+Response: {success: true}</code>
+
+<br>
+<br>
+<br>
+
 <b>POST /api/delete_user</b>
 <p>Body format: <code>username=&lt;username&gt;</code></p>
 <p>Deletes an existing user and all of their data, this is irreversible. Example:</p>
