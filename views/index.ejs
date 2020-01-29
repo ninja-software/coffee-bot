@@ -81,7 +81,9 @@ function edit_user(button) {
 function add() {
   toggle_menu()
   username = prompt("What is the username of the person you would like to add?")
+  if (username == null)return
   real_name = prompt("What is the real name of the person you would like to add?")
+  if (real_name == null)return
   POST("/api/new_user", `username=${username}&real_name=${real_name}`, (data) => {
     if (!data.success) {error(data.error)} else {
       load()
@@ -154,6 +156,7 @@ function load() {
   GET("/api/users", (data) => {
     coffee_addicts.innerHTML = ""
     data.users.map((user) => {
+      if (user.hidden)return
       button = document.createElement("button")
       button.innerText = user.real_name
       button.username = user.username
