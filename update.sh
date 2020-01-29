@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 location="$(pwd)"
+rm -rf /tmp/coffee_bot
+rm /tmp/secrets.js
 git clone https://github.com/ninja-software/coffee-bot /tmp/coffee-bot
 mkdir /tmp/data_directory
 cp -R data_directory/* /tmp/data_directory
