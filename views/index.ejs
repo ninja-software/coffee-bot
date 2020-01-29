@@ -12,6 +12,9 @@
 <nav>
 <h1 class="center">Coffee Tracker</h1>
 
+<div class="left">
+<h2 id="statistics"></h2>
+</div>
 
 <div class="right">
   <a id="hamburger" href="javascript:void(0);" class="icon" onclick=toggle_menu()>
@@ -35,16 +38,19 @@
 
 mode = "default"
 fullscreen = false
+menu_open = false
 
 function toggle_menu() {
   var x = document.getElementById("options");
   var y = document.getElementById("hamburger");
-  if (x.style.display === "block") {
-    x.style.display = "none";
+  if (menu_open) {
+    x.className = ""
     y.style.display = "block"
+    menu_open = false
   } else {
-    x.style.display = "block";
+    x.className = "shown";
     y.style.display = "none"
+    menu_open = true
   }
 }
 
@@ -78,8 +84,9 @@ function cancel() {
 }
 
 function edit_user(button) {
-  new_username = prompt("New username? (Leave blank to keep current)")
+  //new_username = prompt("New username? (Leave blank to keep current)")
   new_real_name = prompt("New real name? (Leave blank to keep current)")
+  new_username = ""
   str = [`username=${button.username}`]
   if (new_username) str.push(`new_username=${new_username}`)
   if (new_real_name) str.push(`new_real_name=${new_real_name}`)
@@ -96,9 +103,10 @@ function edit_user(button) {
 
 function add() {
   toggle_menu()
-  username = prompt("What is the username of the person you would like to add?")
-  if (username == null)return
+  //username = prompt("What is the username of the person you would like to add?")
+  //if (username == null)return
   real_name = prompt("What is the real name of the person you would like to add?")
+  username = real_name
   if (real_name == null)return
   POST("/api/new_user", `username=${username}&real_name=${real_name}`, (data) => {
     if (!data.success) {error(data.error)} else {
@@ -132,6 +140,7 @@ function error(json) {
 function track_coffee(button) {
   POST("/api/drink_coffee", `username=${button.username}`, (data) => {
     if (data.success) {
+      refresh_statistics()
       Swal.fire({
         imageUrl: 'https://i.imgur.com/T2pMn7L.gif',
         imageAlt: 'A sizzling coffee',
@@ -143,6 +152,7 @@ function track_coffee(button) {
         if (r.dismiss == "cancel") {
           POST("/api/remove_last_coffee", `username=${button.username}`, (data) => {
             if (data.success) {
+              refresh_statistics()
               Swal.fire({
                 title: "Undone!"
               })
@@ -199,7 +209,19 @@ function dynamicSort(property) {
     }
 }
 
+function refresh_statistics() {
+  GET("/api/stats", (data) => {
+    if (data.success) {
+      statistics = document.querySelector("#statistics")
+      statistics.innerText = `Coffees today: ${data.stats.coffees_consumed_today}\nAll time: ${data.stats.total_coffees}`
+      } else {
+      error(data.error)
+    }
+  })
+}
+
 function load() {
+  refresh_statistics()
   GET("/api/users", (data) => {
     coffee_addicts.innerHTML = ""
     data.users.sort(dynamicSort("real_name"))
@@ -215,6 +237,11 @@ function load() {
 }
 
 load()
+
+document.addEventListener('click', function(event) {
+  if (event.target.id == "hamburger" || event.target.id == "options" || event.target.parentElement.id == "options")return
+  if (menu_open) toggle_menu()
+}, false);
 
 </script>
 
@@ -250,13 +277,25 @@ a:hover {
 }
 
 #options {
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  -webkit-transition: all 0.2s ease-in-out 0s;
+  -moz-transition: all 0.2s ease-in-out 0s;
+  -ms-transition: all 0.2s ease-in-out 0s;
+  transition: all 0.2s ease-in-out 0s;
+}
+
+#options.shown {
+  opacity: 1;
+  visibility: visible
 }
 
 #options button {
   width: 20vw;
   font-size: 3vw;
   height: 10vh;
+  visibility: inherit;
+  opacity: inherit;
 }
 
 nav .center {
@@ -269,6 +308,16 @@ nav .right {
   position: absolute;
   right: 0;
   top: 0;
+}
+
+nav .left {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+#statistics {
+  margin-left: 20px;
 }
 
 nav button {
@@ -415,7 +464,7 @@ button:focus {
   border-color:transparent;
 }
 
-button:hover {
+#coffee_addicts button:hover {
   opacity: 1;
 }
 
