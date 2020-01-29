@@ -174,7 +174,9 @@ bot.on('message', (msg) => {
             } else {
               today_message = data.coffees_consumed_today + " cup"
               if (data.coffees_consumed_today == 0 || data.coffees_consumed_today > 1) today_message += "s"
-              message = `${today_message} of coffee have been consumed today.`
+              have_has = "have"
+              if (data.coffees_consumed_today == 1) have_has = "has"
+              message = `${today_message} of coffee ${have_has} been consumed today.`
               if (data.coffees_consumed_today > 0) {
                 time_ago_message = time_ago(data.last_consumed)
                 message += ` The last coffee was consumed ${time_ago_message} ago.`
