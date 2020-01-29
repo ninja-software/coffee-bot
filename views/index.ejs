@@ -2,10 +2,6 @@
 <html>
 <head>
 <title>Coffee Tracker Bot</title>
-</head>
-
-<body>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="HandheldFriendly" content="true" />
 
@@ -29,11 +25,15 @@
 </div>
 </div>
 </nav>
+</head>
+
+<body>
 
 <div id="coffee_addicts"></div>
 
 </body>
 
+<script src="/res/lib.js"></script>
 <script>
 
 mode = "default"
@@ -166,28 +166,6 @@ function track_coffee(button) {
       error(data.error)
     }
   })
-}
-
-function GET(url, callback) {
-  fetch(url)
-  .then((resp) => resp.json())
-  .then(function(data) {
-    callback(data)
-  })
-}
-
-function POST(url, data, callback) {
-
-  fetch(url, {
-    method: "POST",
-    body: encodeURI(data),
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    }
-  })
-  .then(function(res){ return res.json(); })
-  .then(function(data){ callback(data) })
-
 }
 
 coffee_addicts = document.getElementById("coffee_addicts")
