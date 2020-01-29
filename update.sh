@@ -10,5 +10,5 @@ rm -rf $location
 mkdir -p $location
 cp -R /tmp/coffee-bot/* $location
 mkdir ./data_directory
-cp -R /tmp/data_directory/* ./data_directory
-cp /tmp/secrets.js ./secrets.js
+cp -R /tmp/data_directory/* $location/data_directory
+cp /tmp/secrets.js $location/secrets.js
