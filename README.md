@@ -14,7 +14,7 @@ git clone https://github.com/ninja-software/coffee-bot
 cd coffee-bot
 sudo ./install.sh
 ```
-Edit secrets.js and swap out <api-key> with your Telegram API key.
+Edit secrets.js and fill in the required information.
 
 You need to have Node.JS and NPM installed for this application to run.
 
