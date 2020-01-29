@@ -7,8 +7,8 @@ After=network.target
 User=root
 Type=simple
 Environment=DISPLAY=:0
-WorkingDirectory=/home/pi/src/coffee-bot/
-ExecStart=/bin/sh /home/pi/src/coffee-bot/start.sh
+WorkingDirectory={PATH}
+ExecStart=/bin/sh {PATH}/start.sh
 Restart=Always
 TimeoutSec=infinity
 
