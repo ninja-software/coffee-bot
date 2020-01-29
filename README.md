@@ -14,8 +14,9 @@ git clone https://github.com/ninja-software/coffee-bot
 cd coffee-bot
 sudo ./install.sh
 ```
-Edit secrets.js
-You have to place your Telegram API key.
+Edit secrets.js and swap out <api-key> with your Telegram API key.
+
+You need to have Node.JS and NPM installed for this application to run.
 
 This will create ```/etc/systemd/system/coffeetrack.service``` and automatically enable and start the service.
 
