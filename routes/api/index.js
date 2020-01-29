@@ -112,7 +112,6 @@ bot.on('message', (msg) => {
         } else if (data.amount == -1) {
           bot.sendMessage(msg.chat.id, `There is no user named "${msg.from.first_name}" in the coffee database!`)
         } else {
-        console.log(data)
           bot.sendMessage(msg.chat.id, data.message)
         }
       })
@@ -123,8 +122,10 @@ bot.on('message', (msg) => {
           error = JSON.stringify(err)
           bot.sendMessage(msg.chat.id, `An error occurred! The details are as follows: ${error}`)
         } else {
+          data = data.filter(e => {return !e.hidden})
           data.sort((a, b) => (a.total_cups_consumed < b.total_cups_consumed) ? 1 : -1)
           response = data.map((user) => {
+            if (user.total_cups_consumed == 0)return `${user.real_name} has never had a coffee!`
             coffee_message =  user.total_cups_consumed + " coffee"
             if (user.total_cups_consumed == 0 || user.total_cups_consumed > 1) coffee_message += "s"
             today_message = user.cups_consumed_today ? user.cups_consumed_today  : "none"
@@ -136,7 +137,7 @@ bot.on('message', (msg) => {
               if (user.days_since_first_coffee > 0) days_message += "s"
               days_message += " ago."
             }
-            if (user.average_daily_cups != 0) average_message += "s"
+            if (user.average_daily_cups != 1) average_message += "s"
             return `${user.real_name} has consumed ${coffee_message} in total, ${today_message} of them ${was_were} today. They drink an average of ${average_message} per day, and ${days_message}`
           }).join("\n")
           if (response.length == 0) response = "There are no users in the database!"
@@ -150,6 +151,7 @@ bot.on('message', (msg) => {
           error = JSON.stringify(err)
           bot.sendMessage(msg.chat.id, `An error occurred! The details are as follows: ${error}`)
         } else {
+          data = data.filter(e => {return !e.hidden})
           data.sort((a, b) => (a.cups_consumed_today < b.cups_consumed_today) ? 1 : -1)
           had_coffee_today = data.filter(e => e.cups_consumed_today > 0)
           getStats((err, data) => {
@@ -265,8 +267,12 @@ function getStatsFromTimes(times) {
   user_data.total_cups_consumed = times.length
   user_data.cups_consumed_today = times.filter(is_today).length
   first_coffee = new Date(parseInt(times[0]))
+  console.log(times)
   user_data.days_since_first_coffee = Math.floor(new Date(new Date() - first_coffee) / (1000 * 3600 * 24))
   user_data.average_daily_cups = user_data.total_cups_consumed / get_working_days(first_coffee, new Date())
+  console.log(user_data.days_since_first_coffee)
+  if (!user_data.days_since_first_coffee && user_data.days_since_first_coffee != 0)user_data.days_since_first_coffee = -1
+  if (!user_data.average_daily_cups && user_data.average_daily_cups != 0)user_data.average_daily_cups=0
   return user_data
 }
 
@@ -280,15 +286,15 @@ function getData(callback, include_data = true) {
       users = users.split("\n")
       //Remove empty lines as they can mess with the parsing
       users = removeBlank(users)
-      //Filter hidden users out from response
-      users = users.filter(e => {return e[0] == "0"})
       //Construct JSON array from lines
       var json_data = users.map((line) => {
         var user_data = {}
+        user_data.hidden = line.split(":")[0] == "1"
         user_data.username = line.split(":")[1]
         user_data.real_name = line.split(":")[2]
         //Get list of when coffee was drank for user
         all_times = line.split(":")[3].split(",")
+        all_times = removeBlank(all_times)
         if (include_data) {
           //Only add list of timestamps to response if include_data is true
           user_data.data = all_times
@@ -317,14 +323,18 @@ function getStats(callback) {
       for (var user of users) {
         all_times = all_times.concat(user.split(":")[3].split(","))
       }
+      //Remove entries from users who haven't drank any coffee
+      all_times = removeBlank(all_times)
       all_times = all_times.map(e => parseInt(e))
       all_times.sort()
       var json_data = {}
       json_data.total_coffees = all_times.length
       first_coffee = new Date(all_times[0])
       json_data.daily_average = json_data.total_coffees / get_working_days(first_coffee, new Date())
+      if (!json_data.daily_average)json_data.daily_average = -1
       json_data.coffees_consumed_today = all_times.filter(is_today).length
       json_data.last_consumed = new Date() - new Date(all_times[all_times.length - 1])
+      if (!json_data.last_consumed)json_data.last_consumed = -1
       callback(err, json_data)
     }
   });
@@ -535,8 +545,11 @@ routes.post('/new_user', (req, res) => {
   } else {
     getUser(req.body.username, req.body.real_name, function(err, data) {
       if (data != -1) {
-        res.status(400).json({success: false, error: "Username or real name is taken!"})
-      } else {
+        if (data.hidden)
+          res.status(400).json({success: false, error: "Username or real name is taken by a hidden/archived user!"})
+        else
+          res.status(400).json({success: false, error: "Username or real name is taken!"})
+        } else {
         //Construct base line for new user
         fs.readFile(dataFile, function(err, content) {
           if (err) {
