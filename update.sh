@@ -8,7 +8,7 @@ cp -R data_directory/* /tmp/data_directory
 cp secrets.js /tmp/secrets.js
 rm -rf $location
 mkdir -p $location
-cp -R /tmp/coffee_bot/* $location
+cp -R /tmp/coffee-bot/* $location
 mkdir data_directory
 cp -R /tmp/data_directory/* data_directory
 cp /tmp/secrets.js secrets.js
