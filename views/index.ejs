@@ -11,7 +11,6 @@
 
 <nav>
 <h1 class="center">Coffee Tracker</h1>
-<button id="fullscreen" onclick=request_fullscreen()>Fullscreen</button>
 
 
 <div class="right">
@@ -22,6 +21,7 @@
 <button id="remove" onclick=switch_mode('remove')>Remove</button>
 <button id="edit" onclick=switch_mode('edit')>Edit</button>
 <button id="add" onclick=switch_mode('add')>Add</button>
+<button id="fullscreen" onclick=toggle_fullscreen()>Fullscreen</button>
 <button id="cancel" onclick=cancel()>Cancel</button>
 </div>
 </div>
@@ -34,6 +34,7 @@
 <script>
 
 mode = "default"
+fullscreen = false
 
 function toggle_menu() {
   var x = document.getElementById("options");
@@ -51,9 +52,14 @@ function set_color(color) {
   document.documentElement.style.setProperty("--button-background", color)
 }
 
-function request_fullscreen() {
-document.querySelector("#fullscreen").style.display = "none"
+function toggle_fullscreen() {
+fullscreen = !fullscreen
+document.querySelector("#fullscreen").innerText =  fullscreen ? "Unfullscreen" : "Fullscreen"
+if (fullscreen) {
 document.documentElement.requestFullscreen()
+} else {
+document.exitFullscreen()
+}
 }
 
 function switch_mode(new_mode) {
@@ -162,9 +168,27 @@ function POST(url, data, callback) {
 
 coffee_addicts = document.getElementById("coffee_addicts")
 
+function dynamicSort(property) {
+    var sortOrder = 1;
+
+    if(property[0] === "-") {
+        sortOrder = -1;
+        property = property.substr(1);
+    }
+
+    return function (a,b) {
+        if(sortOrder == -1){
+            return b[property].localeCompare(a[property]);
+        }else{
+            return a[property].localeCompare(b[property]);
+        }        
+    }
+}
+
 function load() {
   GET("/api/users", (data) => {
     coffee_addicts.innerHTML = ""
+    data.users.sort(dynamicSort("real_name"))
     data.users.map((user) => {
       if (user.hidden)return
       button = document.createElement("button")
@@ -233,14 +257,6 @@ nav .right {
   top: 0;
 }
 
-nav #fullscreen {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 25vw !important;
-  height: 80%;
-}
-
 nav button {
   height: 15vh;
   width: 20vw;
@@ -259,6 +275,11 @@ nav button {
 #add {
   border-radius: 0;
   background-color: green;
+}
+
+#fullscreen {
+  background-color: orange;
+  border-radius: 0;
 }
 
 #cancel {
