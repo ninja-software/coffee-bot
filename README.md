@@ -29,10 +29,22 @@ Running git pull will replace some of your custom files such as secrets.js, inst
 ```
 
 ## Manage server
-To stop the server run ```systemctl stop coffeetrack.service```
-To start again, run ```systemctl start coffeetrack.service```
-To disable the server from running on boot, run ```systemctl disable coffeetrack.service```
-To enable again, run ```systemctl enable coffeetrack.service```
+To stop the server run 
+```
+systemctl stop coffeetrack.service
+```
+To start again, run 
+```
+systemctl start coffeetrack.service
+```
+To disable the server from running on boot, run 
+```
+systemctl disable coffeetrack.service
+```
+To enable again, run 
+```
+systemctl enable coffeetrack.service
+```
 
 ## Use
 There will be 0 users by default, you can create, delete, and edit users using the hamburger menu in the top right corner of the index of the server.
