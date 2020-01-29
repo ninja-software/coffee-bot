@@ -22,6 +22,12 @@ This will create ```/etc/systemd/system/coffeetrack.service``` and automatically
 
 After running the install script, the program will be run at boot time using Nodemon. You will have to place your Telegram API key in the secrets.js file fo
 
+## Update
+Running git pull will replace some of your custom files such as secrets.js, instead, use the update.sh shell script to update.
+```
+./update.sh
+```
+
 ## Manage server
 To stop the server run ```systemctl stop coffeetrack.service```
 To start again, run ```systemctl start coffeetrack.service```
