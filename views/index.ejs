@@ -142,9 +142,13 @@ function track_coffee(button) {
       }).then((r) => {
         if (r.dismiss == "cancel") {
           POST("/api/remove_last_coffee", `username=${button.username}`, (data) => {
-            Swal.fire({
-              title: "Undone!"
-            })
+            if (data.success) {
+              Swal.fire({
+                title: "Undone!"
+              })
+            } else {
+              error(data.error)
+            }
           })
         }
       })
