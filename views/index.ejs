@@ -129,14 +129,6 @@ function handle_click() {
   if (mode == "edit") edit_user(this)
 }
 
-function error(json) {
-  Swal.fire({
-    icon: 'error',
-    title: 'Oops...',
-    text: JSON.stringify(json)
- })
-}
-
 function track_coffee(button) {
   POST("/api/drink_coffee", `username=${button.username}`, (data) => {
     if (data.success) {
