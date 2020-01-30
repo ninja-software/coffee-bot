@@ -16,7 +16,7 @@ if (config.secrets.admin_password == "<admin-password>") {
 }
 app.use(session({
   secret: config.secrets.session_key,
-  maxAge: 1*60*60*1000
+  maxAge: config.session_length
 }));
 
 var views = path.join(__dirname, './views')

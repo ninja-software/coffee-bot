@@ -14,4 +14,7 @@ config.rate_limits = {
   authenticate: 5
 }
 
+//How long the session can exist before expiring, measured in seconds
+config.session_length = 1 * 60 * 60 * 1000
+
 module.exports = config
