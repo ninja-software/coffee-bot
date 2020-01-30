@@ -5,6 +5,15 @@ var path = require('path')
 var config = require("./config")
 
 var session = require('express-session');
+if (config.secrets.telegram_api_key == "<telegram-api-key>") { 
+  throw new Error("Please place your Telegram API key in secrets.js!")
+}
+if (config.secrets.session_key == "<session-key>") {
+  throw new Error("Refusing to use default as session key.")
+}
+if (config.secrets.admin_password == "<admin-password>") { 
+  throw new Error("Refusing to use default as admin password.")
+}
 app.use(session({
   secret: config.secrets.session_key,
   maxAge: 1*60*60*1000
