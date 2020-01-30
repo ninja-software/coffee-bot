@@ -9,4 +9,9 @@ config.validation = {
   real_name_regex: /^([a-zA-Z -]{2,20})$/
 }
 
+//All of these limits are measured in requests/minute
+config.rate_limits = {
+  authenticate: 5
+}
+
 module.exports = config
