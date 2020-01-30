@@ -20,7 +20,7 @@ You need to have Node.JS and NPM installed for this application to run.
 
 This will create ```/etc/systemd/system/coffeetrack.service``` and automatically enable and start the service.
 
-After running the install script, the program will be run at boot time using Nodemon. You will have to place your Telegram API key in the secrets.js file fo
+After running the install script, the program will be run at boot time using Nodemon.
 
 ## Update
 Running git pull will replace some of your custom files such as secrets.js, instead, use the update.sh shell script to update.
