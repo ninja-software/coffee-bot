@@ -17,3 +17,11 @@ function POST(url, data, callback) {
   .then(function(res){ return res.json(); })
   .then(function(data){ callback(data) })
 }
+
+function error(json) {
+  Swal.fire({ 
+    icon: 'error',
+    title: 'Oops...',
+    text: JSON.stringify(json)
+ })
+}
