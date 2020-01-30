@@ -2,6 +2,8 @@ const routes = require('express').Router();
 const config = require("../../config")
 var fs = require('fs');
 
+const adminRouter = require("./admin.js")
+
 process.env.NTBA_FIX_319 = 1
 const telegram_bot = require('node-telegram-bot-api');
 const bot = new telegram_bot(config.secrets.telegram_api_key, {polling: true});
@@ -697,5 +699,15 @@ routes.post('/update_user', (req, res) => {
     })
   }
 });
+
+routes.post('/authenticate', (req, res) => {
+  var correct = req.body.password == config.secrets.admin_password
+  if (correct) {
+    req.session.admin = true
+  }
+  res.status(200).json({success: correct})
+})
+
+routes.use('/admin', adminRouter)
 
 module.exports = routes;
