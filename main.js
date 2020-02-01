@@ -23,6 +23,8 @@ app.use(session({
 
 var backup = require("./backup")
 setInterval(backup, config.backup_frequency)
+//Backup immediately in case the program messes up the database
+backup()
 
 var views = path.join(__dirname, './views')
 app.set('view engine', 'ejs');
