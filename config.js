@@ -17,4 +17,7 @@ config.rate_limits = {
 //How long the session can exist before expiring, measured in seconds
 config.session_length = 1 * 60 * 60 * 1000
 
+//How often to back up user data, measured in milliseconds
+config.backup_frequency = 60 * 60 * 1000
+
 module.exports = config
