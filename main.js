@@ -16,7 +16,9 @@ if (config.secrets.admin_password == "<admin-password>") {
 }
 app.use(session({
   secret: config.secrets.session_key,
-  maxAge: config.session_length
+  maxAge: config.session_length,
+  resave: true,
+  saveUninitialized: true
 }));
 
 var backup = require("./backup")
