@@ -6,7 +6,7 @@ const adminRouter = require("./admin.js")
 
 process.env.NTBA_FIX_319 = 1
 const telegram_bot = require('node-telegram-bot-api');
-const bot = new telegram_bot(config.secrets.telegram_api_key, {polling: true});
+const bot = new telegram_bot(config.secrets.telegram_api_key, {polling: false});
 
 var num = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" ");
 var tens = "twenty thirty forty fifty sixty seventy eighty ninety".split(" ");
