@@ -16,20 +16,6 @@
 
 </body>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
-<script src="/res/lib.js"></script>
-<script>
-
-function logout() {
-  POST("/api/admin/logout", "", () => {
-    document.location.href = "/"
-  })
-}
-
-</script>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
 <style>
 
 #left {
@@ -162,7 +148,7 @@ body {
 }
 
 .container::-webkit-scrollbar { 
-    display: none;  /* Safari and Chrome */
+    display: none;
 }
 
 h1, h2 {
@@ -176,5 +162,19 @@ h1, h2 {
 }
 
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+<script src="/res/lib.js"></script>
+
+<script>
+
+function logout() {
+  POST("/api/admin/logout", "", () => {
+    document.location.href = "/"
+  })
+}
+
+</script>
 
 </html>
