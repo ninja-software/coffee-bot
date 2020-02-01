@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+f<!DOCTYPE html>
 <html>
 <head>
 <title>Coffee Tracker Bot - Admin</title>
@@ -20,6 +20,12 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
 <script src="/res/lib.js"></script>
 <script>
+
+document.querySelector("#password").addEventListener("keyup", (event) => {
+  if (event.key == "Enter") {
+    login()
+  }
+})
 
 function login() {
   password = document.querySelector("#password").value
