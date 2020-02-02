@@ -1,168 +1,47 @@
 <!DOCTYPE html>
 <html>
+
+<link rel="stylesheet" href="res/admin.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
 <head>
 <title>Coffee Tracker Bot - Admin</title>
 </head>
 
 <body>
-<nav>
-<div id="left">
+
+<div class="menu active">
+<button onclick=show("backups")>Manage Backups</button>
 <button onclick=logout()>Logout</button>
 </div>
-<h1 class="center">Admin Portal</h1>
-</nav>
 
-<h1>Welcome to the top secret admin panel.</h1>
+<div class="menu-btn active"><span></span></div>
+
+<div id="backups" class="container">
+<h1>Backups</h1>
+<h2 id="backup_count"></h2>
+<br>
+<div style="" id="backup_list"></div>
+</div>
+
+<div id="archived" class="container">
+<h1>archived</h1>
+</div>
+
+<ul class="bg-bubbles">
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+</ul>
 
 </body>
-
-<style>
-
-#left {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-button {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  outline: 0;
-  background-color: white;
-  border: 0;
-  padding: 10px 15px;
-  color: black;
-  border-radius: 3px;
-  width: 250px;
-  cursor: pointer;
-  font-size: 18px;
-  transition-duration: 0.25s;
-}
-
-button:hover {
-  background-color: #C0C0C0;
-}
-
-#form {
-  position: absolute;
-  top: 25%;
-  text-align: center;
-}
-
-input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  outline: 0;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background-color: rgba(255, 255, 255, 1);
-  width: 350px;
-  border-radius: 3px;
-  padding: 10px 15px;
-  margin: 0 auto 10px auto;
-  display: block;
-  text-align: center;
-  font-size: 18px;
-  color: black;
-  transition-duration: 0.25s;
-  font-weight: 300;
-}
-
-input:focus {
-  background-color: white;
-  width: 375px;
-  color: #000000;
-}
-
-nav .center {
-  width: 60%;
-  margin: 0 auto;
-  text-align: center;
-}
-
-nav {
-  position: fixed;
-  top: 0;
-  height: 15%;
-  width: 100%;
-  background: linear-gradient(123deg, rgba(25,25,25,1) 0%, rgba(39,39,39,1) 100%); 
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* thai */
-@font-face {
-  font-family: 'K2D';
-  font-style: normal;
-  font-weight: 400;
-  src: local('K2D Regular'), local('K2D-Regular'), url(https://fonts.gstatic.com/s/k2d/v3/J7aTnpF2V0EjZKUsrLc.woff2) format('woff2');
-  unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC;
-}
-/* vietnamese */
-@font-face {
-  font-family: 'K2D';
-  font-style: normal;
-  font-weight: 400;
-  src: local('K2D Regular'), local('K2D-Regular'), url(https://fonts.gstatic.com/s/k2d/v3/J7aTnpF2V0Ejf6UsrLc.woff2) format('woff2');
-  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
-}
-/* latin-ext */
-@font-face {
-  font-family: 'K2D';
-  font-style: normal;
-  font-weight: 400;
-  src: local('K2D Regular'), local('K2D-Regular'), url(https://fonts.gstatic.com/s/k2d/v3/J7aTnpF2V0EjfqUsrLc.woff2) format('woff2');
-  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-/* latin */
-@font-face {
-  font-family: 'K2D';
-  font-style: normal;
-  font-weight: 400;
-  src: local('K2D Regular'), local('K2D-Regular'), url(https://fonts.gstatic.com/s/k2d/v3/J7aTnpF2V0EjcKUs.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-body {
-  overflow: scroll;
-  margin: 0;
-  height: 100%;
-  min-height: 100vh;
-  background: #333333;
-  font-family: 'K2D', sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-body {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-.container::-webkit-scrollbar { 
-    display: none;
-}
-
-h1, h2 {
-  color: #fafafa;
-  font-size: 3.5vh;
-}
-
-.swal2-confirm {
-  height: 80px !important;
-  width: 80% !important;
-}
-
-</style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
 <script src="/res/lib.js"></script>
@@ -174,6 +53,77 @@ function logout() {
     document.location.href = "/"
   })
 }
+
+const toggle_button = document.querySelector(".menu-btn")
+const menu = document.querySelector(".menu")
+
+shown = ""
+
+toggle_button.addEventListener("click", () => {
+  toggle_button.classList.toggle('active')
+  menu.classList.toggle('active')
+});
+
+function show(section) {
+  if (shown != "") document.getElementById(shown).style.display = "none"
+  shown = section
+  document.getElementById(shown).style.display = "block"
+  localStorage.selected = shown
+}
+
+if (!localStorage.selected) localStorage.selected = "backups"
+show(localStorage.selected)
+
+function restore_backup(button) {
+  console.log(button)
+  Swal.fire({
+    title: "Are you sure you want to restore from this backup?",
+    text: button.target.innerText,
+    showCancelButton: true,
+    cancelButtonText: "Cancel",
+    confirmButtonText: "Confirm"
+  }).then((r) => {
+    if (r.dismiss != "cancel") {  
+      POST("/api/admin/restore_backup", `name=${button.target.innerText}`, (data) => {
+        if (data.success) {
+          Swal.fire({
+            icon: "success",
+            title: "Restored!"
+          })
+        } else {
+          error(data.error)
+        }
+      })
+    }
+  })
+}
+
+
+var backups
+GET("/api/admin/backups", (data) => {
+  if (data.success) {
+    backups = data.backups.reverse()
+    document.querySelector("#backup_count").innerText = `${backups.length} backups have been made!`    
+    backup_list = document.querySelector("#backup_list")
+    for (var backup of backups) {
+      var div = document.createElement("div")
+      div.id = "backup_item"
+      var button = document.createElement("button")
+      button.innerText = backup
+      button.onclick = restore_backup
+      div.appendChild(button)
+      backup_list.appendChild(div)
+    }
+  } else {
+    error(data.error)
+  }
+})
+
+/* features:
+view archived users
+change configuration
+manage backups
+*/
 
 </script>
 
