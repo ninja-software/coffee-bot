@@ -24,15 +24,12 @@ After running the install script, the program will be run at boot time using Nod
 
 If you are using the Telegram bot, and want command autocompletion, go to the BotFather and run /setcommands. After choosing your bot, send this message
 
-``
+```
 drink - Increments your coffee counter
-
 stats - Gives detailed statistics about everyone's coffee consumption
-
 today - Shows statistics about today's coffee consumption
-
 me - Shows statistics about your coffee consumption
-``
+```
 
 ## Update
 Running git pull will replace some of your custom files such as secrets.js, instead, use the update.sh shell script to update.
