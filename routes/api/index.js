@@ -120,7 +120,7 @@ function round_to_decimal_places(number, dp) {
 }
 
 bot.on('message', (msg) => {
-  switch (msg.text) {
+  switch (msg.text.split("/")[0]) {
     case "/help":
       message = "/drink - Increments your coffee counter\n"
       message += "/stats - Gives detailed statistics about everyone's coffee consumption\n"
